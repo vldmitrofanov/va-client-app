@@ -1,0 +1,12 @@
+# Ignore the node modules folder (created by 'npm install').
+node_modules
+iohook-crash.log
+
+builds/VAclient*/
+node_modules
+node_dep.json
+_app/builds/*
+_app/installers/darvin/*
+_app/installers/win32/*
+src/env.js 
+.DS_Store
