@@ -1,0 +1,76 @@
+<div class="box js-reports">
+    <nav class="level">
+        <div class="level-left">
+            <div class="level-item">
+                <p class="subtitle is-4">Reports</p>
+            </div>
+        </div>
+        <div class="level-right">
+            <div class="level-item">
+                <a class="button is-success js-new">
+                    <span class="icon">
+                        <i class="fas fa-plus"></i>
+                    </span>
+                    <span>New</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <table class="table is-striped is-narrow is-hoverable is-fullwidth js-filed-reports">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Report</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="3">
+                    <div class="loading-data">
+                        <i class="fas fa-sync fa-spin"></i> <span>Fetching Data...</span>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="notification is-danger error-notification hide">
+                <button class="delete"></button>
+                <div id='error-msg'>Report cannot be empty</div>
+            </div>
+            <div class="box">
+                <p class="subtitle is-4">Send Report</p>
+                <div class="form">
+                    <div class="field">
+                        <label class="label">Type</label>
+                        <div class="control">
+                            <div class="select">
+                            <select class="js-form-type">
+                                <option value="sod">SOD</option>
+                                <option value="eod">EOD</option>
+                            </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Report</label>
+                        <div class="control">
+                            <textarea class="textarea js-form-report" placeholder="Report"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field is-grouped">
+                        <div class="control">
+                            <button class="button is-link js-btn-send">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+</div>

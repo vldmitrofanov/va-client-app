@@ -1,0 +1,16 @@
+{% extends "./master.html.twig" %}
+
+{% block content %}
+    <div class="page page-dashboard js-dashboard">
+        <div class="columns">
+            <div class="column main-content">
+                {% include "./timebar.html.twig" %}
+                <div class="notifications js-notification">
+                </div>
+                <section>
+                    {% block maincontent %}{% endblock %}
+                </section>
+            </div>
+        </div>
+    </div>
+{% endblock %}

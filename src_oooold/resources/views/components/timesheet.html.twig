@@ -1,0 +1,49 @@
+<div class="box js-timesheet">
+    <p class="subtitle is-4">Timesheet</p>
+    <table class="table is-striped is-narrow is-hoverable is-fullwidth">
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Target Date</th>
+                <th>Total Time</th>
+                <th>Total Task Time</th>
+                <th>Total Idle Time</th>
+                <th>Total Break Time</th>
+                <th>Billable Hours</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="8">
+                    <div class="loading-data">
+                        <i class="fas fa-sync fa-spin"></i> <span>Fetching Data...</span>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="notification is-danger error-notification hide">
+                <button class="delete"></button>
+                <div id='error-msg'>Dispute cannot be empty</div>
+            </div>
+            <div class="box js-dispute">
+                <div class="field">
+                    <label class="label">Dispute</label>
+                    <div class="control">
+                        <textarea class="textarea" placeholder="Dispute"></textarea>
+                    </div>
+                </div>
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button class="button js-dispute-submit">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+</div>

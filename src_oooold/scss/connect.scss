@@ -1,0 +1,17 @@
+.page-connect {
+    padding-top: 20px;
+
+    .logo .image {
+        width: 60%;
+    }
+
+    .status {
+        font-size: 2rem;
+        color: $white;
+        text-align: center;
+
+        .tag {
+            vertical-align: text-top;
+        }
+    }
+}

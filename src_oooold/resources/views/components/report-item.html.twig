@@ -1,0 +1,16 @@
+{% for item in data %}
+<tr>
+    <td>{{ item.type }}</td>
+    <td>{{ item.report }}</td>
+    <td>{{ item.date }}</td>
+</tr>
+{% endfor %}
+{% if data|length == 0 %}
+<tr>
+    <td colspan="3">
+        <div class="loading-data">
+            <i class="fas fa-exclamation-triangle"></i> <span>No data found.</span>
+        </div>
+    </td>
+</tr>
+{% endif %}

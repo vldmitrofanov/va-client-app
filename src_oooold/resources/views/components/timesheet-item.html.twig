@@ -1,0 +1,30 @@
+{% for item in data %}
+<tr>
+    <td>{{ item.client }}</td>
+    <td>{{ item.target_date }}</td>
+    <td>{{ item.total_time }}</td>
+    <td>{{ item.total_task_time }}</td>
+    <td>{{ item.total_idletime }}</td>
+    <td>{{ item.total_breaktime }}</td>
+    <td>{{ item.billable_hours }}</td>
+    <td>
+        {% if item.status == 'pending' %}
+        <span class="tag is-info">Pending</span>
+        {% elseif item.status == 'approved' %}
+        <span class="tag is-success">Approved</span>
+        {% elseif item.status == 'declined' %}
+        <span class="tag is-danger">Declined</span>
+        {% else %}
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+{% if data|length == 0 %}
+<tr>
+    <td colspan="8">
+        <div class="loading-data">
+            <i class="fas fa-exclamation-triangle"></i> <span>No data found.</span>
+        </div>
+    </td>
+</tr>
+{% endif %}

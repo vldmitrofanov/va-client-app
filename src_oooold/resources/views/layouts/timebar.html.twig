@@ -1,0 +1,139 @@
+<nav class="navbar is-dark js-timebar">
+    <div class="navbar-brand">
+        <figure class='image'><img src="{{ resPath }}/assets/images/va_logo.svg" alt="VA Logo"></figure>
+    </div>
+    <div class="navbar-start js-menu">
+        <a class="navbar-item" data-page="dashboard">Dashboard</a>
+        <a class="navbar-item" data-page="reports">Reports</a>
+        <a class="navbar-item" data-page="timesheet">Timesheet</a>
+        <a class="navbar-item" data-page="schedules">Schedules</a>
+        <a class="button js-logout">Logout</a>
+    </div>
+    <div class="navbar-end">
+        <div class="navbar-item hide">
+            <div class="tags has-addons">
+                <span class="tag is-danger">On Break</span>
+                <span class="tag break-timer">00:00:00</span>
+            </div>
+        </div>
+        <div class="navbar-item">
+            <div class="field is-grouped">
+                <p class="control hide">
+                    <button class="button vaorange" id="js-break">
+                        <span class="icon">
+                            <i class="fas fa-clock"></i>
+                        </span>
+                        <span>Break</span>
+                    </button>
+                </p>
+                <p class="control hide">
+                    <button class="button vaorange" id="js-resume">
+                        <span class="icon">
+                            <i class="fas fa-clock"></i>
+                        </span>
+                        <span>Resume</span>
+                    </button>
+                </p>
+                <p class="control hide">
+                    <button class="button vaorange" id="js-time-in">
+                        <span class="icon">
+                            <i class="fas fa-clock"></i>
+                        </span>
+                        <span>Time In</span>
+                    </button>
+                </p>
+                <p class="control hide">
+                    <button class="button vaorange" id="js-time-out" data-id="0">
+                        <span class="icon">
+                            <i class="fas fa-clock"></i>
+                        </span>
+                        <span>Time Out</span>
+                    </button>
+                </p>
+            </div>
+        </div>  
+    </div>
+    <div class="modal modal-timebar-late">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="box">
+                <p class="subtitle is-4">Time In</p>
+                <div class="form">
+                    <div class="field">
+                        <label class="label">Select Schedule</label>
+                        <div class="control">
+                            <div class="select">
+                            <select class="js-form-schedule"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">If late or early, state reason</label>
+                        <div class="control">
+                            <textarea class="textarea js-form-late" placeholder="Late Reason"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field is-grouped">
+                        <div class="control">
+                            <button class="button is-success is-link js-btn-timein">Time In</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+
+    <div class="modal modal-timebar-task">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <article class="message is-warning">
+                <div class="message-header">
+                    <p>Warning</p>
+                </div>
+                <div class="message-body">
+                    <div>You are timing out with an on-going task.</div>
+                    <a class="button is-danger modal-btn js-timebar-task-out">Time Out</a>
+                    <a class="button is-success modal-btn js-timebar-task-cancel">Cancel</a>
+                </div>
+            </article>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+
+    <div class="modal modal-logout-task">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <article class="message is-warning">
+                <div class="message-header">
+                    <p>Warning</p>
+                </div>
+                <div class="message-body">
+                    <div>You are logging out with an on-going task.</div>
+                    <a class="button is-danger modal-btn js-logout-task-out">Logout</a>
+                    <a class="button is-success modal-btn js-logout-task-cancel">Cancel</a>
+                </div>
+            </article>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+
+    <div class="modal modal-logout">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <article class="message is-warning">
+                <div class="message-header">
+                    <p>Warning</p>
+                </div>
+                <div class="message-body">
+                    <div>You cannot logout while still timed-in.</div>
+                    <a class="button is-danger modal-btn js-real-logout">Logout</a>
+                    <a class="button is-success modal-btn js-logout-cancel">Cancel</a>
+                </div>
+            </article>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+</nav>

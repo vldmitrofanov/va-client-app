@@ -1,0 +1,37 @@
+{% for item in data %}
+<tr>
+    <td>
+        <a class="button is-small js-start-task is-success {{ item.seconds > 0 ? 'hide' : '' }}" data-name="{{ item.name }}" data-description="{{ item.description }}">
+            <span class="icon is-small">
+                <i class="fas fa-play"></i>
+            </span>
+        </a>
+        <a class="button is-small js-stop-task is-danger {{ item.seconds > 0 ? '' : 'hide' }}" data-id="{{ item.id }}">
+            <span class="icon is-small">
+                <i class="fas fa-stop"></i>
+            </span>
+        </a>
+        <span class="js-task-timer {{ item.seconds > 0 ? '' : 'hide' }}" data-id="{{ item.id }}" data-seconds="{{ item.seconds }}"></span>
+    </td>
+    <td>{{ item.name }}</td>
+    <td>{{ item.description }}</td>
+    <td>
+        {% if item.priority == "High" %}
+            <span class="tag is-danger">{{ item.priority }}</span>
+        {% elseif item.priority == "Normal" %}
+            <span class="tag is-info">{{ item.priority }}</span>
+        {% else %}
+            <span class="tag is-primary">{{ item.priority }}</span>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+{% if data|length == 0 %}
+<tr>
+    <td colspan="4">
+        <div class="loading-data">
+            <i class="fas fa-exclamation-triangle"></i> <span>No data found.</span>
+        </div>
+    </td>
+</tr>
+{% endif %}

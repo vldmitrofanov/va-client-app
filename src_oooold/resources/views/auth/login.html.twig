@@ -1,0 +1,58 @@
+{% extends "../layouts/master.html.twig" %}
+
+{% block title %}- Login{% endblock %}
+{% block content %}
+    <div class="page page-login">
+        <div class="logo">
+            <div class='is-flex is-horizontal-center'>
+                <figure class='image'><img src="{{ resPath }}/assets/images/va_logo.svg" alt="VA Logo"></figure>
+            </div>
+        </div>
+        <div class="is-flex is-horizontal-center">
+            <div class="notification is-danger error-notification hide">
+                <button class="delete"></button>
+                <div id='error-msg'>Invalid login. Please try again.</div>
+            </div>
+            {% if err is defined %}
+            <div class="notification is-danger error-notification">
+                <button class="delete"></button>
+                <div id='error-msg'>{{ err }}</div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="form is-flex is-horizontal-center js-login-form">
+            <div class="box">
+                <div class="field">
+                    <label class="label">Email</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input class="input" id="email" type="email" placeholder="Email">
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                    </div>
+                    <p class="help"></p>
+                </div>
+
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input class="input" id="password" type="password" placeholder="Password">
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-key"></i>
+                        </span>
+                    </div>
+                    <p class="help"></p>
+                </div>
+
+                <div class="field">
+                    <label class="checkbox">
+                        <input type="checkbox" id="remember-me">
+                        Remember me
+                    </label>
+                </div>
+
+                <div><button id="submit" class="button is-primary">Login</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}

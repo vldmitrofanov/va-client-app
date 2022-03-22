@@ -1,0 +1,19 @@
+{% extends "../layouts/master.html.twig" %}
+
+{% block title %}- Update{% endblock %}
+{% block content %}
+    <div class="page page-update">
+        <article class="message is-danger">
+            <div class="message-header">
+                <p>Update Client</p>
+            </div>
+            <div class="message-body">
+                <div>Please use the latest app version {{ version }}.</div>
+                <div class="buttons has-addons">
+                    <a class="button download-link" href="{{ win }}" target="_blank"><span class="icon"><i class="fab fa-windows"></i></span><span>Windows</span></a>
+                    <a class="button download-link" href="{{ osx }}" target="_blank"><span class="icon"><i class="fab fa-apple"></i></span><span>OSX</span></a>
+                </div>
+            </div>
+        </article>
+    </div>
+{% endblock %}

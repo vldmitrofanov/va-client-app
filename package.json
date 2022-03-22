@@ -1,0 +1,59 @@
+{
+    "name": "VaClientApp",
+    "productName": "VA Client",
+    "version": "2.0.3",
+    "description": "Virtudesk VAClient Tracker",
+    "main": "main.js",
+    "type": "commonjs",
+    "scripts": {
+        "dev": "./node_modules/.bin/electron . --enable-logging",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "npm run compile-ui && ./node_modules/.bin/electron .",
+        "buildwin": "npm run compile-ui && .\\node_modules\\.bin\\electron .",
+        "compile-ui": "./node_modules/.bin/node-sass src/scss/theme.scss src/resources/assets/styles/theme.css",
+        "darwin": "electron-packager . VaClientApp --platform=darwin --arch=x64 --requestedExecutionLevel=requireAdministrator --icon=src/icon.icns --out=../_app/builds --overwrite",
+        "win32": "electron-packager . VaClientApp --platform=win32 --arch=all --icon=src/icon.ico --out=../_app/builds --overwrite",
+        "deb64": "electron-packager . VaClientApp --platform=linux --arch=x64 --icon=src/icon.ico --out=../_app/builds --overwrite",
+        "darwin-make": "electron-installer-dmg ./_app/builds/VaClientApp-darwin-x64 VaClientApp --out=./_app/installers/darwin --icon=src/icon.icns --requestedExecutionLevel=requireAdministrator --overwrite",
+        "win32-make": "node src/buildwin.js",
+        "cleanBuilds": "node src/cleanBuilds.js"
+    },
+    "win": {
+        "requestedExecutionLevel": "requireAdministrator"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "iohook": {
+        "targets": [
+            "node-83",
+            "electron-85"
+        ],
+        "platforms": [
+            "win32",
+            "darwin"
+        ],
+        "arches": [
+            "x64",
+            "ia32"
+        ]
+    },
+    "devDependencies": {
+        "electron": "^11.0.0",
+        "electron-installer-dmg": "^3.0.0",
+        "electron-packager": "^15.4.0",
+        "electron-wix-msi": "^3.2.0",
+        "node-sass": "^7.0.1"
+    },
+    "dependencies": {
+        "@babel/polyfill": "^7.12.1",
+        "electron-positioner": "^4.1.0",
+        "iohook": "^0.9.3",
+        "jquery": "^3.5.1",
+        "moment": "^2.29.1",
+        "moment-timezone": "^0.5.34",
+        "object.entries": "^1.1.5",
+        "promise-worker": "^2.0.1",
+        "screenshot-desktop": "^1.12.7"
+    }
+}

@@ -1,0 +1,12 @@
+{% extends "../layouts/user.html.twig" %}
+
+{% block title %}- Dashboard{% endblock %}
+{% block maincontent %}
+    <div class="container is-fluid">
+        <h1 class="title">Dashboard</h1>
+        {% include "../components/tasks.html.twig" with {'hide': true} %}
+        {% include "../components/schedule-today.html.twig" %}
+        {% include "../components/reports.html.twig" %}
+        {% include "../components/timesheet.html.twig" %}
+    </div>
+{% endblock %}

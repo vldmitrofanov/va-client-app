@@ -1,0 +1,16 @@
+{% extends "../layouts/master.html.twig" %}
+
+{% block title %}- Idle{% endblock %}
+{% block content %}
+    <div class="page page-idle js-idle">
+        <article class="message is-danger">
+            <div class="message-header">
+                <p>Idle User</p>
+            </div>
+            <div class="message-body">
+                <div>Are you still there? There has been no activity for {{ idleTimeoutSeconds }} sec(s).</div>
+                <div><button id="resume" class="button is-success">Resume</button></div>
+            </div>
+        </article>
+    </div>
+{% endblock %}

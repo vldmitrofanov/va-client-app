@@ -1,0 +1,50 @@
+<aside class="menu js-sidebar">
+    <p class="menu-label">
+        General
+    </p>
+    <ul class="menu-list js-menu">
+        <li><a data-page="dashboard">Dashboard</a></li>
+        <li><a data-page="reports">Reports</a></li>
+        <li><a data-page="timesheet">Timesheet</a></li>
+        <!--// <li><a data-page="leaves">Leave Requests</a></li> //-->
+        <li><a data-page="schedules">Schedules</a></li>
+    </ul>
+    <p class="menu-label">
+        Account
+    </p>
+    <ul class="menu-list">
+        <li><a id="js-logout">Logout</a></li>
+    </ul>
+    <div class="modal modal-logout">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <article class="message is-warning">
+                <div class="message-header">
+                    <p>Warning</p>
+                </div>
+                <div class="message-body">
+                    <div>You cannot logout while still timed-in.</div>
+                    <a class="button is-danger modal-btn js-real-logout">Logout</a>
+                    <a class="button is-success modal-btn js-logout-cancel">Cancel</a>
+                </div>
+            </article>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+    <div class="modal modal-logout-task">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <article class="message is-warning">
+                <div class="message-header">
+                    <p>Warning</p>
+                </div>
+                <div class="message-body">
+                    <div>You are logging out with an on-going task.</div>
+                    <a class="button is-danger modal-btn js-logout-task-out">Logout</a>
+                    <a class="button is-success modal-btn js-logout-task-cancel">Cancel</a>
+                </div>
+            </article>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+    </div>
+</aside>

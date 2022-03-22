@@ -1,0 +1,9 @@
+{% extends "../layouts/master.html.twig" %}
+
+{% block content %}
+<div class="current-task">
+    <i class="fas fa-ellipsis-v drag-handle"></i>
+    <span class="task-text">{{ task }}</span>
+    <span class="js-task-timer" data-seconds="{{ seconds }}" data-startrender="{{ startRenderTimestamp }}" data-id="{{ id }}"></span>
+</div>
+{% endblock %}

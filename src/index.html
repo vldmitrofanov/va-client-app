@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+
+  <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body class="index-body" id="webview">
+
+  <div class="text-center">
+
+
+    <img width="240" src="./assets/images/virtudesk_logo_final.png" class="mb-3 mt-5">
+    <form class="login-form" method="post" onsubmit="function(e){e.preventDefault()}()">
+      <div>
+        <label for="email" class="float-left"><strong>Username</strong></label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="email address" required>
+      </div>
+
+      <div class="mt-4">
+        <label for="password" class="float-left"><strong>Password</strong></label>
+        <input type="password" class="form-control" name="password" id="password" placeholder="password" required>
+      </div>
+
+      <div>
+        <button id="btn-login" class="btn btn-sm btn-primary mt-3">Login now</button>
+      </div>
+      <br>
+      <small id="home-error"></small>
+    </form>
+
+  </div>
+
+  <script src="jquery.min.js"></script>
+  <script src="bootstrap.js"></script>
+  <script src="custom.js"></script>
+</body>
+</html>

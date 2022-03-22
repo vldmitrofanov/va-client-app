@@ -1,0 +1,77 @@
+{% extends "../layouts/user.html.twig" %}
+
+{% block title %}- Leave Requests{% endblock %}
+{% block maincontent %}
+    <div class="container is-fluid js-leave">
+        <h1 class="title">Leave Requests</h1>
+        <div class="box">
+            <p class="subtitle is-4">File a leave</p>
+            <div class="form">
+                <div class="field">
+                    <label class="label">Client</label>
+                    <div class="control">
+                        <div class="select">
+                        <select class="js-form-client">
+                            <option value="id1">Client 1</option>
+                            <option value="id2">Client 2</option>
+                        </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Type</label>
+                    <div class="control">
+                        <div class="select">
+                        <select class="js-form-client">
+                            <option value="halfday">Half-Day</option>
+                            <option value="fullday">Full Day</option>
+                        </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Reason</label>
+                    <div class="control">
+                        <textarea class="textarea js-form-report" placeholder="Report"></textarea>
+                    </div>
+                </div>
+
+                <div>date picker</div>
+                <div>time picker</div>
+
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button class="button is-link js-btn-send">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="box">
+            <p class="subtitle is-4">Filed Leaves</p>
+            <table class="table is-striped is-narrow is-hoverable is-fullwidth js-filed-leaves">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Type</th>
+                        <th>Date/Time</th>
+                        <th>Reason</th>
+                        <th>Filing Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="6">
+                            <div class="loading-data">
+                                <i class="fas fa-sync fa-spin"></i> <span>Fetching Data...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

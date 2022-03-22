@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animate.min.css" />
+  <link rel="stylesheet" href="assets/css/datepicker.min.css" />
+
+
+</head>
+
+<body class="login-body" id="body-main">
+  <div class="content">
+    <div class="navbar">
+      <div class="logo-main float-left"><img style="width: 60px;" src="./assets/images/virtudesk_logo_final.png"></div>
+      <div class="navtab float-left">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item text-center tasktab">
+            <a class="nav-link active" id="tasks-tab" data-toggle="tab" href="#tasks" role="tab" aria-controls="tasks"
+              aria-selected="true">
+              <svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-stopwatch-fill" fill="#baffff"
+                xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                  d="M6.5 0a.5.5 0 0 0 0 1H7v1.07A7.001 7.001 0 0 0 8 16 7 7 0 0 0 9 2.07V1h.5a.5.5 0 0 0 0-1h-3zm2 5.6a.5.5 0 1 0-1 0v2.9h-3a.5.5 0 0 0 0 1H8a.5.5 0 0 0 .5-.5V5.6z" />
+              </svg>
+
+            </a>
+          </li>
+          <li class="nav-item text-center">
+            <a class="nav-link" id="dashboard-tab" data-toggle="tab" href="#dashboard" role="tab"
+              aria-controls="dashboard" aria-selected="false">
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-grid-1x2" fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                  d="M6 1H1v14h5V1zm9 0h-5v5h5V1zm0 9h-5v5h5v-5zM0 1a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm9 0a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V1zm1 8a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1h-5z" />
+              </svg><br>
+              <small>DASHBOARD</small></a>
+          </li>
+          <li class="nav-item text-center">
+            <a class="nav-link" id="timesheet-tab" data-toggle="tab" href="#timesheet" role="tab"
+              aria-controls="timesheet" aria-selected="false">
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-file-earmark-spreadsheet"
+                fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M5 10H3V9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2zm1 0v2h3v-2H6z" />
+                <path
+                  d="M4 0h5.5v1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h1V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2z" />
+                <path d="M9.5 3V0L14 4.5h-3A1.5 1.5 0 0 1 9.5 3z" />
+              </svg><br>
+              <small>TIMESHEETS</small></a>
+          </li>
+          <li class="nav-item text-center">
+            <a class="nav-link" id="schedules-tab" data-toggle="tab" href="#schedules" role="tab"
+              aria-controls="schedules" aria-selected="false">
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-calendar3-week-fill" fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                  d="M2 0a2 2 0 0 0-2 2h16a2 2 0 0 0-2-2H2zm14 3H0v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3zm-2 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3-2a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM4 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+              </svg><br>
+              <small>SCHEDULES</small></a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="float-right ml-2 mt-1">
+        <input type="button" class="btn btn-sm btn-danger" id="logout" value="Logout">
+      </div>
+
+      <div class="btn-group btn-toggle float-right mt-1">
+        <button type="button" id="notif-toggle" class="btn btn-sm dropdown-toggle" data-toggle="dropdown"
+          aria-haspopup="false" aria-expanded="false" title="Please check your Requet status">
+          <span class="badge position-absolute top-0 left-100 translate-middle bg-danger" id="badge-new-req"></span>
+          <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-bell-fill" fill="white"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z" />
+          </svg>
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+  <!--end navbar-->
+  <div class="error-div"><span class="text-center" style="margin-top: 3px;">No SOD report filed yet. Go to Reports and
+      file the report within the first 15 minutes.</span>
+    <span class="close-banner-x" aria-hidden="true">&times;</span>
+  </div>
+
+  <div class="error-div-sod"><span class="text-center" class="sod">This report has already been filed today.</span>
+    <span class="close-banner-x" aria-hidden="true">&times;</span>
+  </div>
+
+  <div class="warning-div animate__animated animate__fadeIn"><span class="text-center"></span>
+    <div class="close-banner-x" aria-hidden="true">&times;</div>
+  </div>
+
+  <div class="status-div">
+    <div class="float-left pr-3">
+      <div class="float-left">
+        &nbsp;&nbsp;&nbsp;<span class="text-success" id="date-current-sched-top"></span>
+      </div>
+    </div>
+
+    <div class="float-right pr-3">
+      <div class="float-left">
+        Status: <span id="logged-status" class="text-success">Logged in</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- dashobard -->
+  <div class="main-div">
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+
+        <div class="custom-row">
+          <span class="misc-title">DASHBOARD</span>
+          <div class="custom-body">
+
+            <div class="custom-body-box mt-2">
+
+              <div class="row" style="height: 100vh;">
+                <!-- Nav tabs -->
+
+                <div class="float-left" style="width:30%; padding: 20px;">
+                  <ul class="nav flex-column" id="custom-vertical-nav" role="tablist">
+                    <div class="float-right text-center">
+                      <img class="profile-img" src="./assets/images/default.png" width="60" height="60">
+                      <div><span id="va-name"></span></div>
+                    </div>
+                    <hr>
+
+                    <li class="nav-item">
+                      <a class="nav-link active" id="mdashboard-tab" data-toggle="tab" href="#mdashboard" role="tab"
+                        aria-controls="mdashboard" aria-selected="false"><svg xmlns="http://www.w3.org/2000/svg"
+                          width="14" height="14" fill="currentColor" class="bi bi-grid-1x2" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M6 1H1v14h5V1zm9 0h-5v5h5V1zm0 9h-5v5h5v-5zM0 1a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm9 0a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V1zm1 8a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1h-5z" />
+                        </svg>&nbsp;&nbsp;Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="mreports-tab" data-toggle="tab" href="#mreports" role="tab"
+                        aria-controls="mreports" aria-selected="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                          class="bi bi-file-text" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M4 0h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4z" />
+                          <path fill-rule="evenodd"
+                            d="M4.5 10.5A.5.5 0 0 1 5 10h3a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 8h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 4h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z" />
+                        </svg>&nbsp;&nbsp;Reports</a>
+                    </li>
+                    <li class="nav-item" style="display:none !important;">
+                      <a class="nav-link" id="home-tab" data-toggle="tab" href="#message" role="tab"
+                        aria-controls="message" aria-selected="false"><svg xmlns="http://www.w3.org/2000/svg" width="14"
+                          height="14" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383l-4.758 2.855L15 11.114v-5.73zm-.034 6.878L9.271 8.82 8 9.583 6.728 8.82l-5.694 3.44A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.739zM1 11.114l4.758-2.876L1 5.383v5.73z" />
+                        </svg>&nbsp;&nbsp;Messages</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="concerns-tab" data-toggle="tab" href="#concerns" role="tab"
+                        aria-controls="concerns" aria-selected="false"><svg xmlns="http://www.w3.org/2000/svg"
+                          width="14" height="14" fill="currentColor" class="bi bi-file-text" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd"
+                            d="M4 0h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4z" />
+                          <path fill-rule="evenodd"
+                            d="M4.5 10.5A.5.5 0 0 1 5 10h3a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 8h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 4h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z" />
+                        </svg>&nbsp;&nbsp;Requests & Concerns</a>
+                    </li>
+                  </ul>
+                </div>
+                <!-- Tab panes -->
+                <div class="float-left" style="width: 70%;">
+                  <div class="tab-content">
+
+                    <!-- dashboard -->
+                    <div class="tab-pane active" id="mdashboard" role="tabpanel" aria-labelledby="mdashboard-tab">
+                      <div class="content-wrapper">
+                        <p class="misc-title-2">
+                          <svg width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-calendar-week"
+                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                              d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                            <path
+                              d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z" />
+                          </svg> &nbsp;&nbsp;TODAYS SCHEDULES
+                        </p>
+                        <table class="table table-sm table-borderless" id="db-scheds"></table>
+                        <br>
+
+                        <p class="misc-title-2">
+                          <svg width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-stopwatch"
+                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                              d="M6 .5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1H9v1.07A7.001 7.001 0 0 1 8 16 7 7 0 0 1 7 2.07V1h-.5A.5.5 0 0 1 6 .5zM8 3a6 6 0 1 0 .001 12A6 6 0 0 0 8 3zm0 2.1a.5.5 0 0 1 .5.5V9a.5.5 0 0 1-.5.5H4.5a.5.5 0 0 1 0-1h3V5.6a.5.5 0 0 1 .5-.5z" />
+                          </svg>&nbsp;&nbsp; CLIENT TASKS
+                        </p>
+                        <table class="table table-sm table-borderless" id="db-tasks">
+
+                        </table>
+                        <br>
+
+                        <p class="misc-title-2"><svg width="1em" height="1em" viewBox="0 0 16 16"
+                            class="bi bi-file-earmark-spreadsheet" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                              d="M5 10H3V9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2zm1 0v2h3v-2H6z" />
+                            <path
+                              d="M4 0h5.5v1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h1V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2z" />
+                            <path d="M9.5 3V0L14 4.5h-3A1.5 1.5 0 0 1 9.5 3z" />
+                          </svg> RECENT TIMESHEETS</p>
+                        <table class="table table-sm table-borderless">
+                          <thead class="text-primary font-weight-bold">
+                            <tr>
+                              <td>Client</td>
+                              <td>Date</td>
+                              <td>Total Hrs</td>
+                              <td>Bills</td>
+                              <td>Status</td>
+                            </tr>
+                          </thead>
+                          <tbody id="db-ts"></tbody>
+                        </table>
+
+
+                      </div>
+                    </div>
+                    <!-- messages -->
+                    <div class="tab-pane" id="message" role="tabpanel" aria-labelledby="message-tab">
+                      <button data-toggle="modal" class="new-btn mb-3 float-right" id="open-message"><img width="20"
+                          src="./assets/images/bootstrap-icons/plus.svg"> New&nbsp;&nbsp;</button>
+                      <div class="content-wrapper" style="height: 400px; overflow: auto;">
+
+                        <table class="table table-sm">
+                          <thead>
+                            <tr>
+                              <th class="hdr-message" style="width: 140px !important;">From</th>
+                              <th class="htd-from" style="width: 200px !important;">Message</th>
+                            </tr>
+                          </thead>
+                          <tbody id="db-messaging"></tbody>
+
+                        </table>
+                      </div>
+
+
+                    </div>
+                    <!-- concerns -->
+                    <div class="tab-pane" id="concerns" role="tabpanel" aria-labelledby="concerns-tab">
+                      <div class="content-wrapper">
+
+                        <div class="btn-group btn-toggle float-right mt--3 mb-3">
+                          <button type="button" id="notif-toggle" class="new-btn" data-toggle="modal"
+                            data-target="#modalReqOvertime" style="border: 3px !imporant; z-index: 99 !important;">
+                            <img width="20" src="./assets/images/bootstrap-icons/plus.svg"> New&nbsp;&nbsp;
+                          </button>
+
+                        </div>
+
+                        <div class="table-responsive" style="height: 400px;">
+                          <table class="table table-sm">
+                            <thead>
+                              <tr>
+                                <th class="htd-from">Details</th>
+                                <th class="htd-date">Type</th>
+                                <th class="htd-date">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody id="requests-concerns-table"></tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- reports -->
+                    <div class="tab-pane" id="mreports" role="tabpanel" aria-labelledby="mreports-tab">
+                      <div class="float-right mt--3 mb-3"><button data-toggle="modal" data-target="#reportModal"
+                          class="new-btn" id="send-report"><img width="20"
+                            src="./assets/images/bootstrap-icons/plus.svg"> New&nbsp;&nbsp;</button></div>
+                      <div class="content-wrapper">
+                        <div class="table-responsive" style="height: 400px;">
+                          <table class="table table-sm table-striped">
+                            <thead>
+                              <tr>
+                                <th scope="col">Type</th>
+                                <th scope="col">Report</th>
+                                <th scope="col">Date</th>
+                              </tr>
+                            </thead>
+                            <tbody id="reports-table"></tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- message body here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+        <span class="misc-title">Reports</span>
+        <div class="float-right mt--3 mb-3"><button data-toggle="modal" data-target="#reportModal" class="new-btn"
+            id="send-report"><img width="20" src="./assets/images/bootstrap-icons/plus.svg"> New</button></div>
+        <div class="home-schedule-box">
+          <div class="table-responsive table-wrapper">
+
+            <table class="table table-sm table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">Type</th>
+                  <th scope="col">Report</th>
+                  <th scope="col">Date</th>
+                </tr>
+              </thead>
+              <tbody id="reports-table">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="timesheet" role="tabpanel" aria-labelledby="timesheet-tab">
+        <span class="misc-title">Timesheets</span>
+        <div class="home-schedule-box">
+          <div class="table-wrapper">
+            <p class="misc-title">Weekly Timesheets</p>
+            <div class="table-responsive" style="height:400px;">
+              <table class="table table-sm table-striped">
+                <thead>
+                  <tr>
+                    <th scope="col">Client</th>
+                    <th scope="col">Target Date</th>
+                    <th scope="col">Total Time</th>
+                    <th scope="col">Total Task <br>Time</th>
+                    <th scope="col">Total Idle <br>Time</th>
+                    <th scope="col">Total Break <br>Time</th>
+                    <th scope="col">Billable Hours</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="timesheet-table">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade sched-pane" id="schedules" role="tabpanel" aria-labelledby="schedules-tab">
+        <span class="misc-title">Schedules</span>
+        <div class="home-schedule-box">
+          <div class="table-wrapper">
+            <p class="misc-title">All Schedules</p>
+            <div class="table-responsive" style="height:400px;">
+              <table class="table table-sm table-striped">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th scope="col">Client</th>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                    <th scope="col">Shift</th>
+                    <th scope="col">Day</th>
+                  </tr>
+                </thead>
+                <tbody id="schedules-table">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade show active tab-task" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+        <p class="misc-title">Tasks</p>
+        <!-- content -->
+        <div class="row ml-2 mr-2">
+          <div class="col">
+            <div class="list-task-box">
+              <!-- start list tasks -->
+              <!-- end list tasks -->
+            </div>
+          </div>
+          <!-- content -->
+        </div>
+      </div>
+    </div>
+    <!--end main div-->
+  </div>
+
+  <!-- modals here -->
+  <div class="modal fade" id="timeinModal" tabindex="-1" role="dialog" aria-labelledby="timeinModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="timeinModalLabel">Time In</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="current-sched-options" class="col-form-label">Select schedule:<br><span
+                  class="text-danger"><small>(list of schedules may change, please check if you are timing in to the
+                    correct schedule) </small></span></label>
+              <select class="form-control" id="current-sched-options"></select>
+            </div>
+            <div class="form-group">
+              <label for="message-text" class="col-form-label">If late or early, please state reason</label>
+              <textarea class="form-control" id="message-text"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary btn-sm" id="send-time-in">Time In</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reportModalLabel">Report</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="current-sched-options" class="col-form-label">Type:</label>
+              <select class="form-control" id="report-type">
+                <option value="sod">SOD</option>
+                <option value="eod">EOD</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="report-text" class="col-form-label">Report</label>
+              <textarea class="form-control" id="report-text"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary btn-sm" id="send-new-report">Send message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="modalIdelRemind" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalIdelRemindLabel"><svg width="1em" height="1em" viewBox="0 0 16 16"
+              class="bi bi-exclamation-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd"
+                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+            </svg> Are you still there?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>There has been no activity for more than <span class="font-weight-bold" id="user_idle_sec"></span> minutes.
+          </p>
+          <div id="idleError" class="text-danger"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="closeIdlePopup" class="btn btn-primary btn-sm" data-dismiss="modal">Resume</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="modalEODRemind" tabindex="-1" role="dialog" aria-labelledby="EOD Remind"
+    aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEODRemindLabel"><svg width="1em" height="1em" viewBox="0 0 16 16"
+              class="bi bi-exclamation-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd"
+                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+            </svg> EOD</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Looks like you have reached end of your schedule.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="closeEODRemindContinue" class="btn btn-primary btn-sm" data-dismiss="modal">Work
+            overtime</button>
+          <button type="button" id="closeEODRemind" class="btn btn-danger btn-sm" data-dismiss="modal">Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="request-forms">
+
+    <div class="modal fade" id="modalReqOvertime" tabindex="-1" role="dialog" aria-labelledby="ReqOvertime"
+      aria-hidden="true" data-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalReqOvertimeLabel"><svg width="1em" height="1em" viewBox="0 0 16 16"
+                class="bi bi-exclamation-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                  d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+              </svg> Requests/Concerns</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form enctype="multipart/form-data" method="POST" action="/api/users/requests-save" id="reqcon-form">
+              <input type="hidden" name="access_token" value="" id="universal_access_token">
+
+              <input type="hidden" name="from_app" value="1">
+              <div class="box box-info">
+                <div class="box-body">
+
+                  <div class="form-group">
+                    <label>Request Type</label>
+                    <select name="type" class="form-control input-lg" id="req-type">
+                      <option value="overtime">Overtime</option>
+                      <option value="shift_change">Change Shift</option>
+                      <option value="vacation_leave">Vacation Leave</option>
+                      <option value="sick_leave">Sick Leave</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group" id="types-area">
+                    <label>Number of Hours</label>
+                    <select name="overtime" class="form-control input-lg">
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Target Date</label>
+                    <input type="text" class="form-control" id="datepicker" data-toggle="datetpicker"
+                      name="target_date">
+                  </div>
+
+                  <div class="form-group">
+                    <label>Details</label>
+                    <textarea class="form-control input-lg" name="details"
+                      placeholder="Please indicate the client name, schedule/shift and reason for this request."></textarea>
+                    <small class="text-danger" id="err-handler"></small>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="btn btn-default">
+                      <div class="upload-area float-left" id="uploadfile">
+                        <div id="upload_here" class="btn btn-sm btn-primary float-left">+ Click or drag and drop
+                          screenshot file in this area</div><br><br>
+                        <div class="text-left"><small>Upload supporting file or acknowledgement by your client
+                            (png/gif/jpg).</small></div>
+
+                      </div>
+                      <input style="display:none;" type="file" name="uploaded_file" id="file" accept="image/*" multiple>
+                      <input type="hidden" name="img_base64" id="input-details">
+                    </label>
+                  </div>
+
+                </div>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="closeReqOt" class="btn btn-danger btn-sm" data-dismiss="modal">Cancel</button>
+            <input type="submit" class="btn btn-success btn-sm" value="Submit"></form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="modalMessageCenter" tabindex="-1" role="dialog"
+      aria-labelledby="modalMessageCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <p class="modal-title font-weight-bold" id="modalMessageCenterTitle">Messages</p>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="user-msg-thread">
+
+            </div>
+
+            <form enctype="multipart/form-data" method="POST" action="" id="reqcon-form-msg">
+              <input type="hidden" name="access_token" value="" id="universal_access_token">
+              <small>Reply</small>
+              <textarea class="form-control" id="msg-reply" name="message"></textarea>
+              <small id="err-handler-msg" class="text-danger"></small>
+              <small id="success-handler-msg" class="text-green"></small>
+
+              <label class="btn btn-default center-block">
+                <div class="upload-area" id="uploadfile">
+                  <h1 style="font-size: 14px;">drag and drop attachment here<br><small>image file format only
+                      (.png/.jpg/.gif)</small></h1>
+
+                </div>
+
+                <input type="file" style="display:none" name="uploaded_file" id="file" accept="image/*,application/pdf"
+                  multiple>
+                <input type="hidden" name="img_base64" id="input-details">
+                <input type="hidden" name="to" id="" value="1">
+                <input type="hidden" name="reply_to" id="reply-reply_to" value="1">
+
+              </label>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>
+            <input type="submit" class="btn btn-sm btn-success float-right" value="Submit">
+          </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="modal" tabindex="-1" role="dialog" id="req-modal-status">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Requests & Concerns</h5>
+
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table class="table table-sm">
+            <tr>
+              <td style="width: 30%;"><strong>Type:</strong></td>
+              <td style="width: 70%;"><span id="pp-req-type"></span></td>
+            </tr>
+            <tr>
+              <td style="width: 30%;"><strong>Details:</strong></td>
+              <td style="width: 70%;"><span id="pp-req-details"></span></td>
+            </tr>
+            <tr class="pp-req-num">
+              <td style="width: 30%;"><strong>Number of hours (OT):</strong></td>
+              <td style="width: 70%;"><span id="pp-req-num"></span></td>
+            </tr>
+            <tr>
+              <td style="width: 30%;"><strong>Target date:</strong></td>
+              <td style="width: 70%;"><span id="pp-req-date"></span></td>
+            </tr>
+            <tr>
+              <td style="width: 30%;"><strong>Admin Note:</strong></td>
+              <td style="width: 70%;"><span id="pp-req-note"></span></td>
+            </tr>
+            <tr>
+              <td style="width: 30%;"><strong>Status:</strong></td>
+              <td style="width: 70%;"><span id="pp-req-status" style="text-transform: capitalize;"></span></td>
+            </tr>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Ok</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="timeinclone"></div>
+  <div class="wait-loading"><img width="50" height="50" src="./assets/images/loading-buffering.gif"></div>
+
+  <script>
+    window.$ = window.jQuery = require('jquery');
+  </script>
+  <script src="bootstrap.bundle.min.js"></script>
+  <script src="js.cookie.min.js"></script>
+  <script src="assets/scripts/moment.min.js"></script>
+  <script src="assets/scripts/moment-timezone-with-data-10-year-range.min.js"></script>
+  <script src="assets/scripts/polyfill.min.js"></script>
+  <script src="assets/scripts/datepicker.min.js"></script>
+
+
+  <script src="main.js"></script>
+  <script>
+    //require("@babel/polyfill")
+    checkPresence();
+
+    getUserSchedules(access_token);
+    getUserSchedulesAll(access_token);
+
+    //getUserAttendance(access_token);
+    getUserTimesheets(access_token);
+    //getUserReports(access_token);
+
+    //getRequestConcern(access_token);
+    //getMessages(access_token);
+
+    $('#datepicker').datepicker();
+    $('#datepicker2').datepicker();
+
+    $(document).bind("contextmenu", function (e) {
+      return true;
+    });
+
+    $('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
+      e.target; // newly activated tab
+      e.relatedTarget; // previous active tab
+      var currId = $(e.target).attr("id");
+    });
+
+    $('#clock-in').click(function () { });
+
+    $('.close-banner-x').click(function () {
+      $(this).parent('div').hide();
+    });
+
+
+    $('#send-new-report').click(function () {
+      sendNewReport(access_token);
+    });
+
+    $('#clock-out').click(function () {
+      clockOut(access_token);
+    });
+
+
+    $('#testupload').click(function () {
+      var data = '100||100||' + access_token
+      uploadScreenshot(data);
+    });
+
+    $('#modalIdelRemind').on('hide.bs.modal', function (e) {
+      resumedIdle(access_token);
+    });
+
+
+    $("html").on("dragover", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      $("#upload_here").text("Drag here");
+    });
+
+    $("html").on("drop", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    // Drag enter
+    $('[class="upload-area"]').on('dragenter', function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      $("#upload_here").text("Drop");
+    });
+
+    // Drag over
+    $('[class="upload-area"]').on('dragover', function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      $("upload_here").text("Drop");
+    });
+
+    // Drop
+    $('.upload-area').on('drop', function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      var dropzone = $(this);
+
+      var de = $('#file');
+
+
+
+      var file = e.originalEvent.dataTransfer.files;
+      var fd = new FormData();
+
+      var selectedFile = file[0];
+      selectedFile.convertToBase64(function (base64) {
+        dropzone.parent().find("#input-details").val(base64);
+      })
+
+      fd.append('file', file[0]);
+      var filename = file[0].name;
+
+      $("#upload_here").text('upload ' + filename);
+
+    });
+
+    $("#req-type").on('change', function () {
+      if ($(this).val() == 'overtime') {
+        $('#types-area').show();
+      } else {
+        $('#types-area').hide();
+      }
+    });
+  </script>
+</body>
+
+</html>

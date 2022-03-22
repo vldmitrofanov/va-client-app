@@ -1,0 +1,26 @@
+{% extends "../layouts/master.html.twig" %}
+
+{% block title %}- Connect{% endblock %}
+{% block content %}
+    <div class="page page-connect" data-recon="{{ recon }}" data-internet="{% if noInternet is defined %}0{% else %}1{% endif %}">
+        <div class="logo">
+            <div class='is-flex is-horizontal-center'>
+                <figure class='image'><img src="{{ resPath }}/assets/images/va_logo.svg" alt="VA Logo"></figure>
+            </div>
+        </div>
+        {% if noInternet is defined %}
+        <div class="status"><span class="tag is-danger is-large">No Internet</span> Please check your internet connection and restart the app.</div>
+        {% else %}
+            {% if recon == 0 %}
+            <div class="status">Connecting to Server</div>
+            {% else %}
+            <div class="status"><span class="tag is-warning is-large">Warning</span> Slow Connection Detected. Reconnecting in {{ recon * 5 }}sec(s).</div>
+            {% endif %}
+            <div class="spinner">
+                <div class="is-flex is-horizontal-center">
+                    <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

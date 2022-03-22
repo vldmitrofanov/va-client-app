@@ -1,0 +1,17 @@
+// Customize Bulma styles
+@import "bulma-custom";
+
+// Import the rest of Bulma
+@import "../../node_modules/bulma/bulma";
+
+// Specific styles
+@import "common";
+@import "connect";
+@import "login";
+@import "dashboard";
+@import "sidebar";
+@import "idle";
+@import "tasks";
+@import "current-task";
+@import "update";
+@import "timebar";

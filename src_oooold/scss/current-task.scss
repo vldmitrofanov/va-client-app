@@ -1,0 +1,20 @@
+.current-task {
+    padding: 7px;
+    overflow: hidden;
+    cursor: move;
+
+    .drag-handle {
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .task-text {
+        color: $white;
+    }
+
+    .js-task-timer {
+        color: #F75312;
+        float: right;
+        margin-right: 5px;
+    }
+}

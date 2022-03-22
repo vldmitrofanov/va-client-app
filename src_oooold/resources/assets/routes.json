@@ -1,0 +1,35 @@
+{
+    "auth/connect": {
+        "controller": "auth/connect"
+    },
+    "pages/dashboard": {
+        "controller": "pages/dashboard"
+    },
+    "auth/login": {
+        "controller": "auth/login"
+    },
+    "auth/idle": {
+        "controller": "auth/idle"
+    },
+    "auth/update": {
+        "controller": "auth/update"
+    },
+    "pages/reports": {
+        "controller": "pages/reports"
+    },
+    "pages/timesheet": {
+        "controller": "pages/timesheet"
+    },
+    "pages/leaves": {
+        "controller": "pages/leaves"
+    },
+    "pages/tasks": {
+        "controller": "pages/tasks"
+    },
+    "pages/schedules": {
+        "controller": "pages/schedules"
+    },
+    "pages/current-task": {
+        "controller": "pages/currentTask"
+    }
+}

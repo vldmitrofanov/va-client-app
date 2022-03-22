@@ -1,0 +1,19 @@
+{% for item in data %}
+<tr>
+    <td><i class="{{ item.current ? '' : 'hide ' }}fas fa-cog fa-spin"></i></td>
+    <td>{{ item.name }}</td>
+    <td>{{ item.start }}</td>
+    <td>{{ item.end }}</td>
+    <td>{{ item.shift }}</td>
+    <td>{{ item.day }}</td>
+</tr>
+{% endfor %}
+{% if data|length == 0 %}
+<tr>
+    <td colspan="6">
+        <div class="loading-data">
+            <i class="fas fa-exclamation-triangle"></i> <span>No data found.</span>
+        </div>
+    </td>
+</tr>
+{% endif %}

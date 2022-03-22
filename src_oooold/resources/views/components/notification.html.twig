@@ -1,0 +1,8 @@
+<div class="notification is-{{ data.level }} notification-{{ data.slug }}" data-timeout="{{ data.timeout }}">
+    {% if data.close %}
+    <button class="delete"></button>
+    {% endif %}
+    <div class="content">
+        {{ data.msg }}
+    </div>
+</div>

@@ -1,0 +1,64 @@
+.page-dashboard {
+    .columns {
+        height: 100%;
+        margin: 0;
+
+        .main-content {
+            padding: 0;
+        }
+    }
+
+    .main-content {
+        background-color: $light;
+    }
+
+    .logo .image {
+        width: 100%;
+    }
+
+    .ver {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    section div.container {
+        margin: 16px;
+    }
+
+    .js-schedules table tbody tr td:first-child {
+        width: 35px;
+    }
+
+    .nav-gray {
+        background-color: #D6D6D6;
+    }
+
+    .vaorange {
+        background-color: #F75312;
+        color: #FFFFFF;
+    }
+
+    .column.main-content {
+        display: flex;
+        flex-flow: column;
+        height: 100%;
+
+        nav.navbar {
+            flex: 0 1 auto;
+        }
+
+        div.notifications {
+            flex: 0 1 auto;
+
+            div.notification {
+                padding: 0.35rem 2.5rem 0.35rem 1.0rem;
+                margin-bottom: 0;
+            }
+        }
+
+        section {
+            flex: 1 1 auto;
+            overflow-y: scroll;
+        }
+    }
+}
