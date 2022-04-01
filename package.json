@@ -1,7 +1,7 @@
 {
     "name": "VAClientApp",
     "productName": "VAClientApp",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "description": "Virtudesk VAClient Tracker",
     "main": "main.js",
     "type": "commonjs",
@@ -28,11 +28,11 @@
             "icon": "src/icon.ico",
             "requestedExecutionLevel": "requireAdministrator",
             "defaultArch": "x64",
-            "verifyUpdateCodeSignature": false          
+            "verifyUpdateCodeSignature": false
         },
         "squirrelWindows": {
             "iconUrl": "https://va-client-assets.s3.us-west-2.amazonaws.com/images/icon.ico",
-            "msi" : true
+            "msi": true
         },
         "nsis": {
             "installerIcon": "src/icon.ico",
@@ -41,8 +41,8 @@
         }
     },
     "repository": {
-        "type" : "git",
-        "url" : "https://github.com/vldmitrofanov/va-client-app.git"
+        "type": "git",
+        "url": "https://github.com/vldmitrofanov/va-client-app.git"
     },
     "keywords": [],
     "author": "Newton Tugadi",
