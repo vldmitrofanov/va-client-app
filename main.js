@@ -13,15 +13,16 @@ var current_os = process.platform;
 
 process.env.NODE_ENV = appSettings.env
 
+/*
 const server = 'https://dist.unlock.sh/v1/electron'
 const productId = '8ed8c913-a5e2-4d18-b668-e9aa7a2417b4'
 // If you require a valid license, you will need to pass the user's license key.
 // You will need to store the user's license key somewhere.
-//const key = appSettings.unlockKey;
-//const updateUrl = `${server}/${productId}/releases?key=${key}`
+const key = appSettings.unlockKey;
+const updateUrl = `${server}/${productId}/releases?key=${key}`
  
 // If you don't require a license to download new releases you can omit the key from the url.
-const updateUrl = `${server}/${productId}/releases`
+//const updateUrl = `${server}/${productId}/releases`
  
 autoUpdater.setFeedURL({
     url: updateUrl,
@@ -29,6 +30,7 @@ autoUpdater.setFeedURL({
     provider: "generic",
     useMultipleRangeRequest: false
 })
+*/
  
 let win, workerWindow, user_interval, is_task_started, userid, idle_timer, sc_interval, access_token, kb_count, mouse_count, sc_interval_count, timedly_url, idle_interval_count, idle_count, is_app_exit, site_url, break_timer, user_data, connection_check, user_is_cloked_in
 
