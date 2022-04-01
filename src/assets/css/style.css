@@ -767,3 +767,12 @@ hr{
 .hidden {
   display: none;
 }
+#appVersion{
+  font-size: 10px;
+  color: #707070;
+  display: inline-block;
+  line-height: 2;
+}
+#tasks-tab{
+  margin-right: 15px;
+}

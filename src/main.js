@@ -39,6 +39,7 @@ setInterval(()=>{
         $('.wait-loading').hide();
     }
 },200)
+
  //require("@babel/polyfill")
  checkPresence();
 
@@ -144,6 +145,14 @@ setInterval(()=>{
      $('#types-area').hide();
    }
  });
+
+const version = document.getElementById('appVersion');
+    
+ipcRenderer.send('app_version');
+ipcRenderer.on('app_version', (event, arg) => {
+    ipcRenderer.removeAllListeners('app_version');
+    version.innerText = 'v'+arg.version;
+});
 
 function checkPresence() {
 
