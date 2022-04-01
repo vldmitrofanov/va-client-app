@@ -17,13 +17,13 @@ const productId = '8ed8c913-a5e2-4d18-b668-e9aa7a2417b4'
 // If you require a valid license, you will need to pass the user's license key.
 // You will need to store the user's license key somewhere.
 const key = appSettings.unlockKey;
-const url = `${server}/${productId}/releases?key=${key}`
+const updateUrl = `${server}/${productId}/releases?key=${key}`
  
 // If you don't require a license to download new releases you can omit the key from the url.
 const url = `${server}/${productId}/releases`
  
 autoUpdater.setFeedURL({
-    url: url,
+    url: updateUrl,
     serverType: 'json',
     provider: "generic",
     useMultipleRangeRequest: false
