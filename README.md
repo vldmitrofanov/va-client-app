@@ -23,3 +23,6 @@ for dev run `npm run dev`
 
 to add github token in windows
 [Environment]::SetEnvironmentVariable("GH_TOKEN","<TOKEN>") 
+
+build for windows 
+npx electron-builder build --win --x64 --publish always

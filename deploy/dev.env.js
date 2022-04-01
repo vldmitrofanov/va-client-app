@@ -1,6 +1,6 @@
 const appSettings = {
     remote_url: 'http://192.168.100.16',
-    software_update_url: 'http://download.vdesk.click:8080',
+    unlockKey: 'a3105b99-e849-412b-ac1c-6f9d6aade946',
     env: 'development'
 }
 

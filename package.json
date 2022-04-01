@@ -23,6 +23,7 @@
         "appId": "com.myvirtudesk.va-client-app",
         "artifactName": "VaClientApp-${channel}-${arch}-${version}.${ext}",
         "executableName": "VAClientApp",
+        "generateUpdatesFilesForAllChannels": true,
         "win": {
             "target": "NSIS",
             "icon": "src/icon.ico",
@@ -73,6 +74,7 @@
     "dependencies": {
         "@babel/polyfill": "^7.12.1",
         "axios": "^0.26.1",
+        "electron-log": "^4.4.6",
         "electron-positioner": "^4.1.0",
         "iohook": "^0.9.3",
         "jquery": "^3.5.1",

@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, net, dialog, autoUpdater } = require('electron')
+const log = require('electron-log');
 
 const url = require('url');
 const path = require('path');
@@ -10,22 +11,24 @@ const { appSettings } = require('./src/env.js')
 var current_os = process.platform;
 
 process.env.NODE_ENV = appSettings.env
-    const updateServer = appSettings.software_update_url
-    
-    const updateUrl = `${updateServer}/update/${process.platform}/${app.getVersion()}`
-    console.log('update url: ', updateUrl )
 
-    if (process.env.NODE_ENV != 'development') {
-        autoUpdater.setFeedURL({ url: updateUrl })
-        setInterval(() => {
-            console.log('update Url ' + updateUrl)
-            console.log(process.env.NODE_ENV)
-            autoUpdater.checkForUpdates()
-        }, 6000)
-    }
-    
-
-
+const server = 'https://dist.unlock.sh/v1/electron'
+const productId = '8ed8c913-a5e2-4d18-b668-e9aa7a2417b4'
+// If you require a valid license, you will need to pass the user's license key.
+// You will need to store the user's license key somewhere.
+const key = appSettings.unlockKey;
+const url = `${server}/${productId}/releases?key=${key}`
+ 
+// If you don't require a license to download new releases you can omit the key from the url.
+const url = `${server}/${productId}/releases`
+ 
+autoUpdater.setFeedURL({
+    url: url,
+    serverType: 'json',
+    provider: "generic",
+    useMultipleRangeRequest: false
+})
+ 
 let win, workerWindow, user_interval, is_task_started, userid, idle_timer, sc_interval, access_token, kb_count, mouse_count, sc_interval_count, timedly_url, idle_interval_count, idle_count, is_app_exit, site_url, break_timer, user_data, connection_check, user_is_cloked_in
 
 function createWindow() {
@@ -542,6 +545,14 @@ app.allowRendererProcessReuse = false;
 
 app.on('ready', function() {
     createWindow();
+    if (process.env.NODE_ENV == 'development-' || process.platform == 'darwin') {
+        return
+    } else {
+        //setTimeout(() => {
+            autoUpdater.checkForUpdatesAndNotify()
+        //}, 3000)
+        
+    }
 });
 
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
@@ -558,7 +569,21 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     })
 })
 
+
 autoUpdater.on('error', message => {
-    console.error('There was a problem updating the application')
-    console.error(message)
+    log.error('There was a problem updating the application')
+    log.error(message)
 })
+
+ipcMain.on('restart_app', () => {
+    autoUpdater.quitAndInstall();
+});
+
+autoUpdater.on('update-available', () => {
+    mainWindow.webContents.send('update_available');
+});
+
+//autoUpdater.on('update-downloaded', () => {
+//    mainWindow.webContents.send('update_downloaded');
+//});
+    

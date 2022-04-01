@@ -253,7 +253,7 @@
                       <div class="content-wrapper">
 
                         <div class="btn-group btn-toggle float-right mt--3 mb-3">
-                          <button type="button" id="notif-toggle" class="new-btn" data-toggle="modal" style="border: 3px !imporant; z-index: 99 !important;">
+                          <button type="button" id="notif-toggle" class="new-btn" data-toggle="modal" style="border: 3px !important; z-index: 99 !important;">
                              Manage Your Requests & Concerns
                           </button>
 
@@ -687,7 +687,15 @@
       </div>
     </div>
   </div>
-
+  <div id="updateNotification" class="hidden">
+    <p id="updateMessage"></p>
+    <button id="close-update-button" onClick="closeNotification()">
+      Close
+    </button>
+    <button id="restart-app-button" onClick="restartApp()" class="hidden">
+      Restart
+    </button>
+  </div>
   <div class="timeinclone"></div>
   <div class="wait-loading"><img width="50" height="50" src="./assets/images/loading-buffering.gif"></div>
 

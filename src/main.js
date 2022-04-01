@@ -1832,6 +1832,31 @@ File.prototype.convertToBase64 = function(callback) {
     reader.readAsDataURL(this);
 };
 
+const updateNotification = document.getElementById('updateNotification');
+const updateMessage = document.getElementById('updateMessage');
+const restartButton = document.getElementById('restart-app-button');
+
+function closeNotification() {
+    updateNotification.classList.add('hidden');
+}
+
+function restartApp() {
+    ipcRenderer.send('restart_app');
+}
+
+ipcRenderer.on('update_available', () => {
+  ipcRenderer.removeAllListeners('update_available');
+  updateMessage.innerText = 'A new update is available. Downloading now...';
+  updateNotification.classList.remove('hidden');
+});
+
+ipcRenderer.on('update_downloaded', () => {
+  ipcRenderer.removeAllListeners('update_downloaded');
+  updateMessage.innerText = 'Update Downloaded. It will be installed on restart. Restart now?';
+  restartButton.classList.remove('hidden');
+  updateNotification.classList.remove('hidden');
+});
+
 
 ipcRenderer.on("ping-pong", function(event, data) {
     doPingpong(access_token, user_id);
