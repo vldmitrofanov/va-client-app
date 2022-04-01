@@ -1,7 +1,6 @@
 # Ignore the node modules folder (created by 'npm install').
 node_modules
 iohook-crash.log
-
 builds/VAclient*/
 node_modules
 node_dep.json
@@ -12,3 +11,5 @@ src/env.js
 .DS_Store
 dist/*
 electron-builder.yml
+.env
+deploy/*

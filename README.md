@@ -20,3 +20,6 @@ v14.17.0
 10. To build app for Windows, run `npm run win32` (for Windows)
 
 for dev run `npm run dev`
+
+to add github token in windows
+[Environment]::SetEnvironmentVariable("GH_TOKEN","<TOKEN>") 
