@@ -93,7 +93,7 @@
     <span class="close-banner-x" aria-hidden="true">&times;</span>
   </div>
 
-  <div class="warning-div animate__animated animate__fadeIn"><span class="text-center"></span>
+  <div class="warning-div animate__animated animate__fadeIn" style="position: absolute;"><span class="text-center"></span>
     <div class="close-banner-x" aria-hidden="true">&times;</div>
   </div>
 
@@ -253,9 +253,8 @@
                       <div class="content-wrapper">
 
                         <div class="btn-group btn-toggle float-right mt--3 mb-3">
-                          <button type="button" id="notif-toggle" class="new-btn" data-toggle="modal"
-                            data-target="#modalReqOvertime" style="border: 3px !imporant; z-index: 99 !important;">
-                            <img width="20" src="./assets/images/bootstrap-icons/plus.svg"> New&nbsp;&nbsp;
+                          <button type="button" id="notif-toggle" class="new-btn" data-toggle="modal" style="border: 3px !imporant; z-index: 99 !important;">
+                             Manage Your Requests & Concerns
                           </button>
 
                         </div>
@@ -509,7 +508,7 @@
 
   <div class="request-forms">
 
-    <div class="modal fade" id="modalReqOvertime" tabindex="-1" role="dialog" aria-labelledby="ReqOvertime"
+    <!--<div class="modal fade" id="modalReqOvertime" tabindex="-1" role="dialog" aria-labelledby="ReqOvertime"
       aria-hidden="true" data-backdrop="static">
       <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -593,7 +592,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div>-->
 
     <div class="modal fade" id="modalMessageCenter" tabindex="-1" role="dialog"
       aria-labelledby="modalMessageCenterTitle" aria-hidden="true">
@@ -701,120 +700,8 @@
   <script src="assets/scripts/moment-timezone-with-data-10-year-range.min.js"></script>
   <script src="assets/scripts/polyfill.min.js"></script>
   <script src="assets/scripts/datepicker.min.js"></script>
-
-
   <script src="main.js"></script>
-  <script>
-    //require("@babel/polyfill")
-    checkPresence();
-
-    getUserSchedules(access_token);
-    getUserSchedulesAll(access_token);
-
-    //getUserAttendance(access_token);
-    getUserTimesheets(access_token);
-    //getUserReports(access_token);
-
-    //getRequestConcern(access_token);
-    //getMessages(access_token);
-
-    $('#datepicker').datepicker();
-    $('#datepicker2').datepicker();
-
-    $(document).bind("contextmenu", function (e) {
-      return true;
-    });
-
-    $('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
-      e.target; // newly activated tab
-      e.relatedTarget; // previous active tab
-      var currId = $(e.target).attr("id");
-    });
-
-    $('#clock-in').click(function () { });
-
-    $('.close-banner-x').click(function () {
-      $(this).parent('div').hide();
-    });
-
-
-    $('#send-new-report').click(function () {
-      sendNewReport(access_token);
-    });
-
-    $('#clock-out').click(function () {
-      clockOut(access_token);
-    });
-
-
-    $('#testupload').click(function () {
-      var data = '100||100||' + access_token
-      uploadScreenshot(data);
-    });
-
-    $('#modalIdelRemind').on('hide.bs.modal', function (e) {
-      resumedIdle(access_token);
-    });
-
-
-    $("html").on("dragover", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      $("#upload_here").text("Drag here");
-    });
-
-    $("html").on("drop", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-
-    // Drag enter
-    $('[class="upload-area"]').on('dragenter', function (e) {
-      e.stopPropagation();
-      e.preventDefault();
-      $("#upload_here").text("Drop");
-    });
-
-    // Drag over
-    $('[class="upload-area"]').on('dragover', function (e) {
-      e.stopPropagation();
-      e.preventDefault();
-      $("upload_here").text("Drop");
-    });
-
-    // Drop
-    $('.upload-area').on('drop', function (e) {
-      e.stopPropagation();
-      e.preventDefault();
-      var dropzone = $(this);
-
-      var de = $('#file');
-
-
-
-      var file = e.originalEvent.dataTransfer.files;
-      var fd = new FormData();
-
-      var selectedFile = file[0];
-      selectedFile.convertToBase64(function (base64) {
-        dropzone.parent().find("#input-details").val(base64);
-      })
-
-      fd.append('file', file[0]);
-      var filename = file[0].name;
-
-      $("#upload_here").text('upload ' + filename);
-
-    });
-
-    $("#req-type").on('change', function () {
-      if ($(this).val() == 'overtime') {
-        $('#types-area').show();
-      } else {
-        $('#types-area').hide();
-      }
-    });
-  </script>
+ 
 </body>
 
 </html>

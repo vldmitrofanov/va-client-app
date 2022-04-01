@@ -10,19 +10,20 @@ const { appSettings } = require('./src/env.js')
 var current_os = process.platform;
 
 process.env.NODE_ENV = appSettings.env
-    //const updateServer = appSettings.software_update_url
-    /*
+    const updateServer = appSettings.software_update_url
+    
     const updateUrl = `${updateServer}/update/${process.platform}/${app.getVersion()}`
+    console.log('update url: ', updateUrl )
 
     if (process.env.NODE_ENV != 'development') {
         autoUpdater.setFeedURL({ url: updateUrl })
         setInterval(() => {
-            console.log('update Url' + updateUrl)
+            console.log('update Url ' + updateUrl)
             console.log(process.env.NODE_ENV)
             autoUpdater.checkForUpdates()
         }, 6000)
     }
-    */
+    
 
 
 let win, workerWindow, user_interval, is_task_started, userid, idle_timer, sc_interval, access_token, kb_count, mouse_count, sc_interval_count, timedly_url, idle_interval_count, idle_count, is_app_exit, site_url, break_timer, user_data, connection_check, user_is_cloked_in
@@ -46,6 +47,10 @@ function createWindow() {
         icon: path.join(__dirname, 'src/icon.icns'),
         webPreferences: { nodeIntegration: true, backgroundThrottling: false }
     });
+
+    if (process.env.NODE_ENV == 'development') {
+        win.webContents.openDevTools()
+    }
 
     win.setMenuBarVisibility(false);
     win.setVisibleOnAllWorkspaces(true);
@@ -159,13 +164,19 @@ ipcMain.on("confirm-logout", (e, t) => {
 
 ipcMain.on("logged-user", (e, t) => {
 
-    var user_pref = t.split("|");
-    userid = user_pref[2];
-    idle_timer = Math.floor(user_pref[0] / 60) * 60;
+    //var user_pref = t.split("|");
+    // {idle_timer, sc_interval , user_id, access_token, remote_url, resumed}
+    //console.log(t)
+    userid = t.user_id; // user_pref[2];
+    //idle_timer = Math.floor(user_pref[0] / 60) * 60;
+    idle_timer = Math.floor(parseInt(t.idle_timer) / 60) * 60;
+    if(idle_timer < 60) idle_timer = 600;
     //sc_interval = 20; //for testing
-    sc_interval = Math.floor(user_pref[1] / 60) * 60;
-    access_token = user_pref[3];
-    timedly_url = user_pref[4];
+    //sc_interval = Math.floor(user_pref[1] / 60) * 60;
+    sc_interval = Math.floor(parseInt(t.sc_interval) / 60) * 60;
+    if(sc_interval < 60) sc_interval = 120;
+    access_token = t.access_token; //user_pref[3];
+    timedly_url = t.remote_url; //user_pref[4];
     site_url = timedly_url.split("//");
     user_is_cloked_in = true;
 
@@ -282,8 +293,6 @@ ipcMain.on("start-task", (e, t) => {
             idle_interval_count = 0;
             idle_count = 0;
         }
-
-
 
     }, 1000);
 });
@@ -454,13 +463,18 @@ function performHttp(img) {
     });
 
     request.on('response', (response) => {
-        console.log(`STATUS: ${response.statusCode}`);
+        const statusCode = parseInt(response.statusCode)
+        console.log(`STATUS: ${statusCode}`);
         console.log(`HEADERS: ${JSON.stringify(response.headers)}`);
 
         response.on('data', (chunk) => {
             //console.log(`BODY: ${chunk}`)
-            if (chunk.includes('Client error') || chunk.includes('Server error')) {
-                dialog.showErrorBox('Error while uploading screenshot', '')
+            if (chunk.includes('Client error') || chunk.includes('Server error') || statusCode >=400) {
+                let info = ''
+                if(statusCode >= 400){
+                    info = 'Server returned error: ' + statusCode
+                }
+                dialog.showErrorBox('Error while uploading screenshot! ' + info, '')
             }
         });
     });

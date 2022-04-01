@@ -1,6 +1,6 @@
 {
-    "name": "va-client-app",
-    "productName": "VA Client",
+    "name": "VAClientApp",
+    "productName": "VAClientApp",
     "version": "2.0.3",
     "description": "Virtudesk VAClient Tracker",
     "main": "main.js",
@@ -16,13 +16,36 @@
         "deb64": "electron-packager . VaClientApp --platform=linux --arch=x64 --icon=src/icon.ico --out=../_app/builds --overwrite",
         "darwin-make": "electron-installer-dmg ./_app/builds/VaClientApp-darwin-x64 VaClientApp --out=./_app/installers/darwin --icon=src/icon.icns --requestedExecutionLevel=requireAdministrator --overwrite",
         "win32-make": "node src/buildwin.js",
-        "cleanBuilds": "node src/cleanBuilds.js"
+        "cleanBuilds": "node src/cleanBuilds.js",
+        "dist": "electron-builder ."
     },
-    "win": {
-        "requestedExecutionLevel": "requireAdministrator"
+    "build": {
+        "appId": "com.myvirtudesk.va-client-app",
+        "artifactName": "VaClientApp-${channel}-${arch}-${version}.${ext}",
+        "executableName": "VAClientApp",
+        "win": {
+            "target": "NSIS",
+            "icon": "src/icon.ico",
+            "requestedExecutionLevel": "requireAdministrator",
+            "defaultArch": "x64",
+            "verifyUpdateCodeSignature": false          
+        },
+        "squirrelWindows": {
+            "iconUrl": "https://va-client-assets.s3.us-west-2.amazonaws.com/images/icon.ico",
+            "msi" : true
+        },
+        "nsis": {
+            "installerIcon": "src/icon.ico",
+            "uninstallerIcon": "src/icon.ico",
+            "runAfterFinish": false
+        }
+    },
+    "repository": {
+        "type" : "git",
+        "url" : "https://github.com/vldmitrofanov/va-client-app.git"
     },
     "keywords": [],
-    "author": "",
+    "author": "Newton Tugadi",
     "license": "ISC",
     "iohook": {
         "targets": [
@@ -40,6 +63,8 @@
     },
     "devDependencies": {
         "electron": "^11.0.0",
+        "electron-builder": "^22.14.13",
+        "electron-builder-squirrel-windows": "^23.0.3",
         "electron-installer-dmg": "^3.0.0",
         "electron-packager": "^15.4.0",
         "electron-wix-msi": "^3.2.0",
@@ -47,6 +72,7 @@
     },
     "dependencies": {
         "@babel/polyfill": "^7.12.1",
+        "axios": "^0.26.1",
         "electron-positioner": "^4.1.0",
         "iohook": "^0.9.3",
         "jquery": "^3.5.1",

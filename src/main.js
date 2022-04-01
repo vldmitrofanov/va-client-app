@@ -1,6 +1,7 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer,shell } = require('electron');
 const path = require('path');
 const { appSettings } = require('./env.js')
+const axios = require('axios')
 
 //var remote_url = 'https://portal.myvirtudesk.com';
 //var remote_url = 'http://54.212.185.214';
@@ -8,24 +9,141 @@ const remote_url = appSettings.remote_url
 console.log(remote_url)
 
 var user_id = '';
-var access_token = '';
-var timedin = '';
+var access_token = localStorage.getItem("access_token");
+//var timedin = '';
 var onbreak = false;
 var ontask = false;
 var schedule_id = '';
 var noConnection = false;
-var last_access_token = '';
+//var last_access_token = '';
 var to_dashboard_box = '';
 var user_eod = '';
 var goOT = false;
-var change_ti = false;
-var nu_new_messages = 0;
-var todays_attendance = [];
-var curr_task_id = '';
-var btn_task_id = '';
+//var change_ti = false;
+//var nu_new_messages = 0;
+//var todays_attendance = [];
+//var curr_task_id = '';
+//var btn_task_id = '';
 var num_message = 0;
 var user_data = '';
-var active_task_id = '';
+var active_task_id = localStorage.getItem("userCurrentTaskId") || '';
+var locked = false;
+if(!access_token || access_token == ''){
+    window.location.href = 'index.html';
+}
+
+setInterval(()=>{
+    if(locked){
+        $('.wait-loading').show();
+    } else {
+        $('.wait-loading').hide();
+    }
+},200)
+ //require("@babel/polyfill")
+ checkPresence();
+
+ getUserSchedules().then(()=>{
+    getUserSchedulesAll().then(()=>{
+        getUserTimesheets();
+    })
+ })
+
+ $('#datepicker').datepicker();
+ $('#datepicker2').datepicker();
+
+ $(document).bind("contextmenu", function (e) {
+   return true;
+ });
+
+ $('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
+   e.target; // newly activated tab
+   e.relatedTarget; // previous active tab
+   var currId = $(e.target).attr("id");
+ });
+
+ $('#clock-in').on('click', function () { });
+
+ $('.close-banner-x').on('click', function () {
+   $(this).parent('div').hide();
+ });
+
+
+ $('#send-new-report').on('click', function () {
+   sendNewReport(access_token);
+ });
+
+ $('#clock-out').on('click', function () {
+   clockOut(access_token);
+ });
+
+
+ $('#testupload').on('click', function () {
+   var data = '100||100||' + access_token
+   uploadScreenshot(data);
+ });
+
+ $('#modalIdelRemind').on('hide.bs.modal', function (e) {
+   resumedIdle(access_token);
+ });
+
+
+ $("html").on("dragover", function (e) {
+   e.preventDefault();
+   e.stopPropagation();
+   $("#upload_here").text("Drag here");
+ });
+
+ $("html").on("drop", function (e) {
+   e.preventDefault();
+   e.stopPropagation();
+ });
+
+ // Drag enter
+ $('[class="upload-area"]').on('dragenter', function (e) {
+   e.stopPropagation();
+   e.preventDefault();
+   $("#upload_here").text("Drop");
+ });
+
+ // Drag over
+ $('[class="upload-area"]').on('dragover', function (e) {
+   e.stopPropagation();
+   e.preventDefault();
+   $("upload_here").text("Drop");
+ });
+
+ // Drop
+ $('.upload-area').on('drop', function (e) {
+   e.stopPropagation();
+   e.preventDefault();
+   var dropzone = $(this);
+
+   var de = $('#file');
+
+
+
+   var file = e.originalEvent.dataTransfer.files;
+   var fd = new FormData();
+
+   var selectedFile = file[0];
+   selectedFile.convertToBase64(function (base64) {
+     dropzone.parent().find("#input-details").val(base64);
+   })
+
+   fd.append('file', file[0]);
+   var filename = file[0].name;
+
+   $("#upload_here").text('upload ' + filename);
+
+ });
+
+ $("#req-type").on('change', function () {
+   if ($(this).val() == 'overtime') {
+     $('#types-area').show();
+   } else {
+     $('#types-area').hide();
+   }
+ });
 
 function checkPresence() {
 
@@ -82,209 +200,210 @@ function checkPresence() {
     //getMessages(access_token);
 }
 
-var lat = $('#universal_access_token').val();
+if(parseInt(active_task_id) > 0){
+    doStopTask()
+}
 
-function getUserTasks(lat) {
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+//var lat = $('#universal_access_token').val();
+
+async function getUserTasks() {
+    /*
         url: remote_url + '/api/users/tasks',
         type: 'get',
         data: { 'access_token': access_token },
-        success: function(data) {
+    */
+   if(locked) return
+   locked = true
+    try{
+        const response = await axios.get(`${remote_url}/api/users/tasks?access_token=${access_token}`)
+        const data = response.data
+        var html = 'No reports found';
+        var play_break_btn = '';
+        var priority_class = '';
 
-            //console.log('user tasks');
-            //console.log(data);
-            //console.log('end getting user tasks');
+        var vdTasks = ["Prospecting", "Marketing", "Coach", "Client Services", "Training", "Administrative", "Recruitment", "Dev"];
+        var clientTasks = '';
 
-            var html = 'No reports found';
-            var play_break_btn = '';
-            var priority_class = '';
+        if (data.status == 'success') {
 
-            var vdTasks = ["Prospecting", "Marketing", "Coach", "Client Services", "Training", "Administrative", "Recruitment", "Dev"];
-            var clientTasks = '';
+            var last_task_item = localStorage.getItem("last_task") === null ? '0' : localStorage.getItem("last_task").replace('#collapseTask', '');
 
-            if (data.status == 'success') {
-                $('.wait-loading').hide();
+            Object.entries(data).forEach(([key, val]) => {
+                if (key == 'data') {
+                    if (val.length > 0) {
+                        let countr = 0;
+                        Object.entries(val).forEach(([k, v]) => {
+                            countr += 1;
+                            var collapse_this = countr == last_task_item ? 'show' : '';
+                            var expanded = countr == last_task_item ? 'true' : 'false';
+                            if (v.priority == 'High') {
+                                priority_class = 'priority-red';
+                                pclass = 'badge badge-danger';
+                            } else {
+                                priority_class = 'priority-gray';
+                                pclass = 'badge badge-secondary';
+                            }
+                            html += schedule_id + '<tr><td scope="row" class="task-first-col" id="name">' + v.name + '</td><td id="description">' + v.description + '</td><td><div class="' + priority_class + ' badge ' + pclass + ' float-left">' + v.priority + '</div></td><td><div id="' + k + '" class="timerbox">0:00:00</div></td></tr>';
 
-                var last_task_item = localStorage.getItem("last_task") === null ? '0' : localStorage.getItem("last_task").replace('#collapseTask', '');
+                            if (!vdTasks.includes(v.name)) {
+                                clientTasks += '<tr><td><span class="' + pclass + '">' + v.priority + '</span> ' + v.name + '</td></tr>'
+                            }
 
-                //console.log(last_task_item);
-
-                Object.entries(data).forEach(([key, val]) => {
-                    if (key == 'data') {
-                        if (val.length > 0) {
-                            let countr = 0;
-                            Object.entries(val).forEach(([k, v]) => {
-                                countr += 1;
-                                var collapse_this = countr == last_task_item ? 'show' : '';
-                                var expanded = countr == last_task_item ? 'true' : 'false';
-                                if (v.priority == 'High') {
-                                    priority_class = 'priority-red';
-                                    pclass = 'badge badge-danger';
-                                } else {
-                                    priority_class = 'priority-gray';
-                                    pclass = 'badge badge-secondary';
-                                }
-                                html += schedule_id + '<tr><td scope="row" class="task-first-col" id="name">' + v.name + '</td><td id="description">' + v.description + '</td><td><div class="' + priority_class + ' badge ' + pclass + ' float-left">' + v.priority + '</div></td><td><div id="' + k + '" class="timerbox">0:00:00</div></td></tr>';
-
-                                if (!vdTasks.includes(v.name)) {
-                                    clientTasks += '<tr><td><span class="' + pclass + '">' + v.priority + '</span> ' + v.name + '</td></tr>'
-                                }
-
-                                play_break_btn += '<div rel="no-action" class="collapse-anchor" href="#collapseTask' + countr + '" aria-expanded="' + expanded + '" aria-controls="collapseTask' + countr + '"> <div class="task-title-box"> <div class="task-title float-left" rel="' + v.id + '">' + v.name + '</div><div class="float-right ml-2"><span class="' + pclass + '">' + v.priority + '</span></div></div><div class="collapse ' + collapse_this + '" id="collapseTask' + countr + '"> <div class="collapse-contents mt-1 animate__animated animate__fadeIn"> <div class="row"> <div class="col-sm-6 task-desc">' + v.description + '</div><div class="col-sm-6 text-right"> <button id="' + v.id + '" rel="play" class="btn btn-sm-play" title="Start task"> <span class="tm-ctr"></span> <span id="cur-icon" class="cur-icon-play"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg></button> <button class="btn btn-sm-break" rel="busy" title="Break"><span id="break-timer"></span> <span class="curr-break-icon"><svg id="break-svg" width="1.4em" height="1.4em" viewBox="0 0 16 16" class="bi bi-cup-fill" fill="white" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M1 2a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v1h.5A1.5 1.5 0 0 1 16 4.5v7a1.5 1.5 0 0 1-1.5 1.5h-.55a2.5 2.5 0 0 1-2.45 2h-8A2.5 2.5 0 0 1 1 12.5V2zm13 10h.5a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.5-.5H14v8z"/></svg></span></span></button> </div></div></div></div></div>';
-                            });
-                        }
+                            play_break_btn += '<div rel="no-action" class="collapse-anchor" href="#collapseTask' + countr + '" aria-expanded="' + expanded + '" aria-controls="collapseTask' + countr + '"> <div class="task-title-box"> <div class="task-title float-left" rel="' + v.id + '">' + v.name + '</div><div class="float-right ml-2"><span class="' + pclass + '">' + v.priority + '</span></div></div><div class="collapse ' + collapse_this + '" id="collapseTask' + countr + '"> <div class="collapse-contents mt-1 animate__animated animate__fadeIn"> <div class="row"> <div class="col-sm-6 task-desc">' + v.description + '</div><div class="col-sm-6 text-right"> <button id="' + v.id + '" rel="play" class="btn btn-sm-play" title="Start task"> <span class="tm-ctr"></span> <span id="cur-icon" class="cur-icon-play"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg></button> <button class="btn btn-sm-break" rel="busy" title="Break"><span id="break-timer"></span> <span class="curr-break-icon"><svg id="break-svg" width="1.4em" height="1.4em" viewBox="0 0 16 16" class="bi bi-cup-fill" fill="white" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M1 2a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v1h.5A1.5 1.5 0 0 1 16 4.5v7a1.5 1.5 0 0 1-1.5 1.5h-.55a2.5 2.5 0 0 1-2.45 2h-8A2.5 2.5 0 0 1 1 12.5V2zm13 10h.5a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.5-.5H14v8z"/></svg></span></span></button> </div></div></div></div></div>';
+                        });
                     }
-                });
+                }
+            });
 
-                //if(schedule_id == ''){
-                //play_break_btn = '<div class="text-secondary">No tasks set at this time</div>';
-                //clientTasks = '<tr><td class="text-secondary">No tasks set at this time</td></tr>';
-                //}
-
-                $('.tab-pane').find('.list-task-box').html(play_break_btn);
-                $('#db-tasks').html(clientTasks);
-
-                //$('#'+last_task_item.replace('#', '')).find('.btn-sm-play').click();
-
-
-            } else {
-                play_break_btn = '<div class="text-secondary">No tasks set at this time</div>';
-                clientTasks = '<tr><td class="text-secondary">No tasks set at this time</td></tr>';
-            }
-
-            //end taks
+        } else {
+            play_break_btn = '<div class="text-secondary">No tasks set at this time</div>';
+            clientTasks = '<tr><td class="text-secondary">No tasks set at this time</td></tr>';
         }
-    });
+
+        $('.tab-pane').find('.list-task-box').html(play_break_btn);
+        $('#db-tasks').html(clientTasks);
+        locked = false
+    } catch (e) {
+        locked = false
+        const errorMessage = e.message || 'Undefined error'
+        $('.warning-div').find('span').text('Could not get tasks due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+    }
 }
 
-function getUserSchedules(access_token) {
+async function getUserSchedules() {
+    //if(locked) return
+    //locked = true
     var currentday_id = '';
     var sked_id = '';
     schedule_id = '';
     var safe_to_login = false;
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+    /*
         url: remote_url + '/api/users/schedules',
         type: 'get',
         data: { 'access_token': access_token, 'current': 'today' },
-        success: function(data) {
-            if (data.status == 'error') {
-                localStorage.removeItem("userDataTimedlyNewton");
-                localStorage.removeItem("userDataTimedlyTimedin");
-                window.location.href = 'index.html';
-            }
+    */
+    try {
+        const response = await axios.get(`${remote_url}/api/users/schedules?access_token=${access_token}&current=today`)
+        const data = response.data
+        if (data.status == 'error') {
+            localStorage.removeItem("userDataTimedlyNewton");
+            localStorage.removeItem("userDataTimedlyTimedin");
+            window.location.href = 'index.html';
+        }
 
-            var html = '<td colspan="5">No schedule found</td>';
-            var option = '<option>No schdules for today</option>'
-            var TodayDate = new Date();
-            var d = TodayDate.getDay();
+        var html = '<td colspan="5">No schedule found</td>';
+        var option = '<option>No schdules for today</option>'
+        var TodayDate = new Date();
+        var d = TodayDate.getDay();
 
-            var timenow = moment().format('hh:mm:ssA');
-            var weekday = new Array(7);
-            weekday[0] = "Sunday";
-            weekday[1] = "Monday";
-            weekday[2] = "Tuesday";
-            weekday[3] = "Wednesday";
-            weekday[4] = "Thursday";
-            weekday[5] = "Friday";
-            weekday[6] = "Saturday";
-            html = '';
+        var timenow = moment().format('hh:mm:ssA');
+        var weekday = new Array(7);
+        weekday[0] = "Sunday";
+        weekday[1] = "Monday";
+        weekday[2] = "Tuesday";
+        weekday[3] = "Wednesday";
+        weekday[4] = "Thursday";
+        weekday[5] = "Friday";
+        weekday[6] = "Saturday";
+        html = '';
 
-            var current_sched_options = '';
+        var current_sched_options = '';
 
-            if (data !== null) {
+        if (data !== null) {
 
-                var user_current_day = '';
-                var client_current_day = '';
+            var user_current_day = '';
+            var client_current_day = '';
 
-                Object.entries(data).forEach(([key, val]) => {
+            Object.entries(data).forEach(([key, val]) => {
 
-                    if (val.length > 0) {
+                if (val.length > 0) {
 
-                        if (key == 'data') {
-                            Object.entries(val).forEach(([k, v]) => {
-                                var last_login = localStorage.getItem("last_login");
-                                var selectedSched = '';
+                    if (key == 'data') {
+                        Object.entries(val).forEach(([k, v]) => {
+                            var last_login = localStorage.getItem("last_login");
+                            var selectedSched = '';
 
-                                if (last_login == v.id) {
+                            if (last_login == v.id) {
 
-                                    sked_id = v.id;
-                                    schedule_id = v.id;
+                                sked_id = v.id;
+                                schedule_id = v.id;
 
-                                    if (v.current == true) {
-                                        safe_to_login = true;
-                                        selectedSched = 'selected';
-                                    }
-
-                                    to_dashboard_box = '<tr><td style="font-weight:bold; color: green;"><span class="badge badge-success"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg> current</span> ' + v.day + ' ' + v.start + '-' + v.end + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
-                                    current_sched_options += '<option value="' + v.id + '" ' + selectedSched + '>' + v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm:ssA') + '-' + v.end + ' (' + v.shift + ') ' + v.name + '</option>';
-                                    $('#date-current-sched-top').html(v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm A') + ' - ' + moment(v.end, 'h:mm:ssA').format('h:mm A') + ' (' + v.shift + ') ' + v.name);
-
-                                } else if (v.current == true) {
-                                    sked_id = v.id;
-                                    schedule_id = v.id;
-
-                                    to_dashboard_box = '<tr><td style="font-weight:bold; color: green;"><span class="badge badge-success"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg> current</span> ' + v.start + '-' + v.end + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
-                                    current_sched_options += '<option value="' + v.id + '" selected>' + v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm:ssA') + '-' + v.end + ' (' + v.shift + ') ' + v.name + '</option>';
-
-                                    $('#date-current-sched-top').html(v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm A') + ' - ' + moment(v.end, 'h:mm:ssA').format('h:mm A') + ' (' + v.shift + ') ' + v.name);
-
-                                } else {
-                                    //sked_id = v.id;
-                                    //schedule_id = v.id;
-
-                                    to_dashboard_box = '<tr><td style="font-weight:bold; color: green;"><span class="badge badge-success"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg> current</span> ' + v.start + '-' + v.end + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
-                                    current_sched_options += '<option value="' + v.id + '">' + v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm:ssA') + '-' + v.end + ' (' + v.shift + ') ' + v.name + '</option>';
-
-                                    $('#date-current-sched-top').html(v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm A') + ' - ' + moment(v.end, 'h:mm:ssA').format('h:mm A') + ' (' + v.shift + ') ' + v.name);
+                                if (v.current == true) {
+                                    safe_to_login = true;
+                                    selectedSched = 'selected';
                                 }
 
-                            });
-                        }
+                                to_dashboard_box = '<tr><td style="font-weight:bold; color: green;"><span class="badge badge-success"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg> current</span> ' + v.day + ' ' + v.start + '-' + v.end + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
+                                current_sched_options += '<option value="' + v.id + '" ' + selectedSched + '>' + v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm:ssA') + '-' + v.end + ' (' + v.shift + ') ' + v.name + '</option>';
+                                $('#date-current-sched-top').html(v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm A') + ' - ' + moment(v.end, 'h:mm:ssA').format('h:mm A') + ' (' + v.shift + ') ' + v.name);
+
+                            } else if (v.current == true) {
+                                sked_id = v.id;
+                                schedule_id = v.id;
+
+                                to_dashboard_box = '<tr><td style="font-weight:bold; color: green;"><span class="badge badge-success"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg> current</span> ' + v.start + '-' + v.end + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
+                                current_sched_options += '<option value="' + v.id + '" selected>' + v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm:ssA') + '-' + v.end + ' (' + v.shift + ') ' + v.name + '</option>';
+
+                                $('#date-current-sched-top').html(v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm A') + ' - ' + moment(v.end, 'h:mm:ssA').format('h:mm A') + ' (' + v.shift + ') ' + v.name);
+
+                            } else {
+                                //sked_id = v.id;
+                                //schedule_id = v.id;
+
+                                to_dashboard_box = '<tr><td style="font-weight:bold; color: green;"><span class="badge badge-success"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg> current</span> ' + v.start + '-' + v.end + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
+                                current_sched_options += '<option value="' + v.id + '">' + v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm:ssA') + '-' + v.end + ' (' + v.shift + ') ' + v.name + '</option>';
+
+                                $('#date-current-sched-top').html(v.day + ' ' + moment(v.start, 'h:mm:ssA').format('h:mm A') + ' - ' + moment(v.end, 'h:mm:ssA').format('h:mm A') + ' (' + v.shift + ') ' + v.name);
+                            }
+
+                        });
                     }
-                });
-
-                //console.log('sked id ' + sked_id);
-                //try {
-                //window.webkit.messageHandlers.relayOvertime.postMessage(user_eod);
-                //}catch(err){
-                //}
-                //log user here
-                if (sked_id != '') {
-                    $('#current-sched-options').html(current_sched_options);
-                    //setAttendance(access_token, user_id, sked_id);
-                    $('#logged-status').text('Not Timed In');
-                    var got = localStorage.getItem("goOT");
-
-
-                    //if(got != 'true'){
-                    $("#timeinModal").clone().appendTo($(".timeinclone"));
-                    //}
-
-                    if (safe_to_login === true) {
-                        setAttendance(access_token, user_id, sked_id);
-                    } else {
-                        $('#timeinModal').modal('show');
-                    }
-
-                } else {
-                    //alert('this');
-                    $('#current-sched-options').html(current_sched_options);
-                    $('#timeinModal').modal('show');
-                    $("#timeinModal").clone().appendTo($(".timeinclone"));
-                    $('.tab-pane').find('.list-task-box').html('<div>No schedule set at this time. Please click the schedules tab for the list of schedules or relogin to previous set of schedules.</div>');
                 }
+            });
+
+            console.log('sked id ' + sked_id);
+            //try {
+            //window.webkit.messageHandlers.relayOvertime.postMessage(user_eod);
+            //}catch(err){
+            //}
+            //log user here
+            if (sked_id != '') {
+                $('#current-sched-options').html(current_sched_options);
+                //setAttendance(access_token, user_id, sked_id);
+                $('#logged-status').text('Not Timed In');
+                //var got = localStorage.getItem("goOT");
+
+
+                //if(got != 'true'){
+                $("#timeinModal").clone().appendTo($(".timeinclone"));
+                //}
+
+                if (safe_to_login === true) {
+                    setAttendance(access_token, user_id, sked_id);
+                } else {
+                    $('#timeinModal').modal('show');
+                }
+
+            } else {
+                //alert('this');
+                $('#current-sched-options').html(current_sched_options);
+                $('#timeinModal').modal('show');
+                $("#timeinModal").clone().appendTo($(".timeinclone"));
+                $('.tab-pane').find('.list-task-box').html('<div>No schedule set at this time. Please click the schedules tab for the list of schedules or relogin to previous set of schedules.</div>');
             }
         }
-    });
+        //locked = false
+    } catch(error){
+        //locked = false
+        const errorMessage = e.message || 'Undefined error'
+        $('.warning-div').find('span').text('Could not get schedules due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+    }
+
 }
 
-function getUserAttendance(access_token) {
+function getUserAttendance() {
     $.ajax({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -296,41 +415,45 @@ function getUserAttendance(access_token) {
     });
 }
 
-function getUserTimesheets(access_token) {
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: remote_url + '/api/users/timesheets',
-        type: 'get',
-        data: { 'current': true, 'access_token': access_token },
-        success: function(data) {
-            var html = 'No timesheets found';
-            var dbTs = '';
+async function getUserTimesheets() {
+    const url = `${remote_url}/api/users/timesheets?access_token=${access_token}&current=true`
+    /*
+    type: 'get',
+    data: { 'current': true, 'access_token': access_token },
+    */
+    try {
+        const response = await axios.get(url)
+        const data = response.data
+        var html = 'No timesheets found';
+        var dbTs = '';
 
-            if (data.status == 'success') {
-                Object.entries(data).forEach(([key, val]) => {
-                    if (key == 'data') {
-                        if (val.length > 0) {
-                            Object.entries(val).forEach(([k, v]) => {
-                                html += '<tr><td scope="row">' + v.client + '</td><td>' + v.target_date + '</td><td>' + v.total_time + '</td><td>' + v.total_task_time + '</td><td>' + v.total_idletime + '</td><td>' + v.total_breaktime + '</td><td>' + v.billable_hours + '</td><td>' + v.status + '</td></tr>';
+        if (data.status == 'success') {
+            Object.entries(data).forEach(([key, val]) => {
+                if (key == 'data') {
+                    if (val.length > 0) {
+                        Object.entries(val).forEach(([k, v]) => {
+                            html += '<tr><td scope="row">' + v.client + '</td><td>' + v.target_date + '</td><td>' + v.total_time + '</td><td>' + v.total_task_time + '</td><td>' + v.total_idletime + '</td><td>' + v.total_breaktime + '</td><td>' + v.billable_hours + '</td><td>' + v.status + '</td></tr>';
 
-                                if (moment().subtract(1, "days").format('YYYY-MM-DD') == v.target_date || moment().format('YYYY-MM-DD') == v.target_date) {
-                                    dbTs += '<tr><td scope="row">' + v.client + '</td><td>' + v.target_date + '</td><td>' + v.total_time + '</td><td>' + v.billable_hours + '</td><td>' + v.status + '</td></tr>';
-                                }
+                            if (moment().subtract(1, "days").format('YYYY-MM-DD') == v.target_date || moment().format('YYYY-MM-DD') == v.target_date) {
+                                dbTs += '<tr><td scope="row">' + v.client + '</td><td>' + v.target_date + '</td><td>' + v.total_time + '</td><td>' + v.billable_hours + '</td><td>' + v.status + '</td></tr>';
+                            }
 
-                            });
-                        }
+                        });
                     }
-                });
-            }
-            $('.tab-pane').find('#timesheet-table').html(html);
-            $('#db-ts').html(dbTs);
+                }
+            });
         }
-    });
+        $('.tab-pane').find('#timesheet-table').html(html);
+        $('#db-ts').html(dbTs);
+    } catch(error){
+        //locked = false
+        const errorMessage = e.message || 'Undefined error'
+        $('.warning-div').find('span').text('Could not get timesheets due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+    }
 }
 
-function getUserReports(access_token) {
+function getUserReports() {
     //Reports
     $.ajax({
         headers: {
@@ -369,60 +492,56 @@ function getUserReports(access_token) {
     });
 }
 
-function clockOutUser(access_token) {
-
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+async function clockOutUser() {
+    /*
         url: remote_url + '/api/auth/logout',
         type: 'get',
         data: { 'access_token': access_token },
-        success: function(data) {
-            localStorage.removeItem("goOT");
-            //window.webkit.messageHandlers.relayStatusHandler.postMessage("stoptimer");
-            //window.webkit.messageHandlers.relayLogoutHandler.postMessage("logout");
-            localStorage.removeItem("userDataTimedlyNewton");
-            localStorage.removeItem("userDataTimedlyTimedin");
-            window.location.href = 'index.html';
-        }
-    });
+    */
+   try{
+   const response = await axios.get( `${remote_url}/api/auth/logout?access_token=${access_token}`)
+   localStorage.removeItem("goOT");
+   //window.webkit.messageHandlers.relayStatusHandler.postMessage("stoptimer");
+    //window.webkit.messageHandlers.relayLogoutHandler.postMessage("logout");
+    localStorage.removeItem("last_login");
+    localStorage.removeItem("last_task");
+    localStorage.removeItem("idletime");
+    localStorage.removeItem("userDataTimedlyNewton");
+    localStorage.removeItem("userDataTimedlyTimedin");
+    localStorage.removeItem("access_token");
+    window.location.href = 'index.html';
+   } catch(e){
+        console.log(e)
+        locked = false
+        const errorMessage = e.message || 'Undefined error'
+        $('.warning-div').find('span').text('Could not log out due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+   }
 }
 
-function logoutUserToFront() {
-    $('.wait-loading').show();
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: remote_url + '/api/auth/logout',
-        type: 'get',
-        data: { 'access_token': access_token },
-        success: function(data) {
-
-            if (data.status == 'success') {
-                localStorage.removeItem("userDataTimedlyNewton");
-                localStorage.removeItem("userDataTimedlyTimedin");
-                localStorage.removeItem("goOT");
-                localStorage.setItem("last_login", "");
-
-                //try {
-                //window.webkit.messageHandlers.relayStatusHandler.postMessage("stoptimer");
-                //window.webkit.messageHandlers.relayLogoutHandler.postMessage("logout");
-                //} catch(err) {
-                //}
-
-                $('.wait-loading').hide();
-                window.location.href = 'index.html';
-            } else {
-                $('.wait-loading').hide();
-                $('.warning-div').find('span').text('A task is currently running. Please stop the task to proceed.');
-                $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-
-            }
+async function logoutUserToFront() {  
+    if(locked) return
+    locked = true
+    const url = `${remote_url}/api/auth/logout?access_token=${access_token}`
+    try{
+        const response = await axios.get(url)
+        const data = response.data
+        if (data.status == 'success') {
+            localStorage.removeItem("userDataTimedlyNewton");
+            localStorage.removeItem("userDataTimedlyTimedin");
+            localStorage.removeItem("goOT");
+            localStorage.setItem("last_login", "");
+            window.location.href = 'index.html';
+        } else {
+            $('.warning-div').find('span').text('A task is currently running. Please stop the task to proceed.');
+            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
 
         }
-    });
+    } catch(e){
+        console.log(e)
+    } finally{
+        locked = false
+    }
 }
 
 function logoutUserQuit() {
@@ -437,87 +556,85 @@ function logoutUserQuit() {
     });
 }
 
-function getUserSchedulesAll(access_token) {
+async function getUserSchedulesAll() {
+    locked = true
+    try{
+        const response = await axios.get(`${remote_url}/api/users/schedules?access_token=${access_token}`)
+        const data = response.data
+        var html = '<td colspan="5">No schedule found</td>';
+        var option = '<option>No schdules for today</option>'
+        var TodayDate = new Date();
+        var d = TodayDate.getDay();
 
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: remote_url + '/api/users/schedules',
-        type: 'get',
-        data: { 'access_token': access_token },
-        success: function(data) {
-            var html = '<td colspan="5">No schedule found</td>';
-            var option = '<option>No schdules for today</option>'
-            var TodayDate = new Date();
-            var d = TodayDate.getDay();
+        var weekday = new Array(7);
+        weekday[0] = "Sunday";
+        weekday[1] = "Monday";
+        weekday[2] = "Tuesday";
+        weekday[3] = "Wednesday";
+        weekday[4] = "Thursday";
+        weekday[5] = "Friday";
+        weekday[6] = "Saturday";
+        html = '';
+        option = '';
 
-            var weekday = new Array(7);
-            weekday[0] = "Sunday";
-            weekday[1] = "Monday";
-            weekday[2] = "Tuesday";
-            weekday[3] = "Wednesday";
-            weekday[4] = "Thursday";
-            weekday[5] = "Friday";
-            weekday[6] = "Saturday";
-            html = '';
-            option = '';
+        var user_current_day = '';
+        var client_current_day = '';
+        let local_id = 0;
+        var newid = [];
 
-            var user_current_day = '';
-            var client_current_day = '';
-            let local_id = 0;
-            var newid = [];
+        if (data !== null) {
+            Object.entries(data).forEach(([key, val]) => {
+                if (val.length > 0) {
 
-            if (data !== null) {
-                Object.entries(data).forEach(([key, val]) => {
-                    if (val.length > 0) {
+                    if (key == 'data') {
+                        Object.entries(val).forEach(([k, v]) => {
 
-                        if (key == 'data') {
-                            Object.entries(val).forEach(([k, v]) => {
+                            var start = moment().format('YYYY-MM-DD ');
+                            var startAMPM = v.start.match(/AM|PM/g);
+                            var schedStart = start + (v.start.split(startAMPM) + startAMPM).replace(',', ' ');
 
-                                var start = moment().format('YYYY-MM-DD ');
-                                var startAMPM = v.start.match(/AM|PM/g);
-                                var schedStart = start + (v.start.split(startAMPM) + startAMPM).replace(',', ' ');
+                            var end = moment().format('YYYY-MM-DD ');
+                            var endAMPM = v.end.match(/AM|PM/g);
+                            var schedEnd = end + (v.end.split(endAMPM) + endAMPM).replace(',', ' ');
 
-                                var end = moment().format('YYYY-MM-DD ');
-                                var endAMPM = v.end.match(/AM|PM/g);
-                                var schedEnd = end + (v.end.split(endAMPM) + endAMPM).replace(',', ' ');
+                            let startsc = moment(schedStart, 'YYYY-MM-DD hh:mm:ss A').format('hh:mm A');
+                            let endsc = moment(schedEnd, 'YYYY-MM-DD hh:mm:ss A').format('hh:mm A');
 
-                                let startsc = moment(schedStart, 'YYYY-MM-DD hh:mm:ss A').format('hh:mm A');
-                                let endsc = moment(schedEnd, 'YYYY-MM-DD hh:mm:ss A').format('hh:mm A');
+                            if (v.id == schedule_id) {
+                                html += '<tr class="font-weight-bold"><th class="text-center"><img style="margin-top:7px;" width="20" src="./assets/images/bootstrap-icons/circle-fill-2.svg"></th><td scope="row">' + v.client_name + '</td><td>' + startsc + '</td><td>' + endsc + '</td><td>' + v.shift + '</td><td>' + v.day + '</td></tr>';
+                            } else {
+                                html += '<tr><th></th><td scope="row">' + v.client_name + '</td><td>' + startsc + '</td><td>' + endsc + '</td><td>' + v.shift + '</td><td>' + v.day + '</td></tr>';
+                            }
 
-                                if (v.id == schedule_id) {
-                                    html += '<tr class="font-weight-bold"><th class="text-center"><img style="margin-top:7px;" width="20" src="./assets/images/bootstrap-icons/circle-fill-2.svg"></th><td scope="row">' + v.client_name + '</td><td>' + startsc + '</td><td>' + endsc + '</td><td>' + v.shift + '</td><td>' + v.day + '</td></tr>';
-                                } else {
-                                    html += '<tr><th></th><td scope="row">' + v.client_name + '</td><td>' + startsc + '</td><td>' + endsc + '</td><td>' + v.shift + '</td><td>' + v.day + '</td></tr>';
-                                }
+                            if (v.id == schedule_id) {
+                                local_id = k;
+                                to_dashboard_box = '<tr><td style="font-weight:bold; color: green;"><span class="badge badge-success"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg> current</span> ' + startsc + '-' + endsc + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
+                            } else if (k >= local_id) {
+                                newid[k] = '<tr><td class="text-secondary"><span class="badge badge-secondary">next</span> ' + startsc + '-' + endsc + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
+                            }
 
-                                if (v.id == schedule_id) {
-                                    local_id = k;
-                                    to_dashboard_box = '<tr><td style="font-weight:bold; color: green;"><span class="badge badge-success"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg> current</span> ' + startsc + '-' + endsc + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
-                                } else if (k >= local_id) {
-                                    newid[k] = '<tr><td class="text-secondary"><span class="badge badge-secondary">next</span> ' + startsc + '-' + endsc + '(' + v.shift + ')<br>' + v.name + '</td></tr>';
-                                }
-
-                            });
-                        }
+                        });
                     }
-                });
+                }
+            });
 
-                let addid = +local_id + 1;
+            let addid = +local_id + 1;
 
-                //console.log(addid)
-                to_dashboard_box += newid[addid];
-            }
-
-            if (schedule_id == '') {
-                to_dashboard_box = '<tr><td class="text-secondary">Schedule not found</td></tr>';
-            }
-
-            $('#db-scheds').html(to_dashboard_box);
-            $('.sched-pane').find('#schedules-table').html(html);
+            //console.log(addid)
+            to_dashboard_box += newid[addid];
         }
-    });
+
+        if (schedule_id == '') {
+            to_dashboard_box = '<tr><td class="text-secondary">Schedule not found</td></tr>';
+        }
+
+        $('#db-scheds').html(to_dashboard_box);
+        $('.sched-pane').find('#schedules-table').html(html);
+    } catch(e){
+        console.log(e)
+    } finally{
+        locked = false
+    }
 }
 
 function setAttendance(access_token, user_id, schedule_id) {
@@ -622,7 +739,8 @@ function clockOut(access_token) {
     }
 }
 
-function doPingpong(access_token, user_id) {
+async function doPingpong(access_token, user_id) {
+    /*
     $.ajax({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -642,10 +760,31 @@ function doPingpong(access_token, user_id) {
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {}
     });
+    */
+   const url = remote_url + '/api/users/ping-pong'
+   try{
+    const response = await axios.post(url,{ 
+        'access_token': access_token, 'user_id': user_id 
+    })
+    const data = response.data
+    if (data.status == 'error') {
+        if (data.case == 'auth') {
+            localStorage.removeItem("userDataTimedlyNewton");
+            localStorage.removeItem("userDataTimedlyTimedin");
+            window.location.href = 'index.html';
+        }
+    }
+   }  catch(error) {
+        $('.warning-div').find('span').text('Could not connect to the main server! Please check your internet connection' );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+   }
 }
 
-function doStartTask(lat, name, description) {
+async function doStartTask( name, description, button) {
     console.log(name);
+    if(locked) return
+    locked = true
+    /*
     return Promise.resolve($.ajax({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -655,117 +794,270 @@ function doStartTask(lat, name, description) {
         async: true,
         data: { 'access_token': access_token, 'name': name, 'description': description },
     }));
+    */
+    const url = `${remote_url}/api/users/tasks?access_token=${access_token}&name=${name}&description=${description}`
+    try{       
+        const response = await axios.post(url)
+        const data = response.data
+        locked = false
+        console.log(data)
+        let status
+        if (data.status == 'success') {
+            active_task_id = data.data.id;
+            ipcRenderer.send("start-task", name);
+            ipcRenderer.send("new-task-name", name);
+            status = '1';
+        } else {
+            $('.warning-div').find('span').text('Could not start task. Please check your internet connection or try again later');
+            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+            status = '0';
+        }
 
-    //return status;
+        if (status == '1') {
+            button.attr('rel', 'stop');
+            button.attr('title', 'Stop task');
+            button.parent().parent().parent().parent().parent().find('#cur-icon').find('svg').remove();
+            button.parent().parent().parent().parent().parent().find('#cur-icon').html(stop_icon);
+
+            button.parent().parent().parent().parent().parent().find('.tm-ctr').addClass('timer-ctr');
+            button.parent().parent().parent().parent().parent().find('.tm-ctr').text('0:00:00');
+            button.parent().parent().parent().parent().parent().find('.btn-sm-break').show();
+
+            $('.collapse-anchor').attr('rel', 'task-action');
+
+            button.parent().parent().parent().parent().parent().attr('rel', 'no-action');
+
+            ontask = true;
+
+            getTimedInUserData('yes');
+            localStorage.setItem("userCurrentTaskId",active_task_id);
+        } else {
+            $('.warning-div').find('span').text('Server busy. Please try again.');
+            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+        }
+    } catch(error) {
+        locked = false
+        const errorMessage = error.message || 'Undefined error'
+        $('.warning-div').find('span').text('Could not stop tasks due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+    }
 }
 
-function doStopTask(lat, ati) {
-    var status = '';
-    var access_token = lat;
-
-    //console.log('this ' + ati);
-
-    return Promise.resolve($.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+async function doStopTask(button) {
+    /*
         url: remote_url + '/api/users/tasks/' + ati,
         type: 'PUT',
-        async: true,
         data: { 'access_token': lat },
-    }));
+    */
+    if(locked) return
+    locked = true
+
+    const url = `${remote_url}/api/users/tasks/${active_task_id}?access_token=${access_token}`;
+    try{
+        const response = await axios.put(url);
+        locked = false
+        const data = response.data;
+        let status
+        if (data.status == 'success') {
+            try {
+                ipcRenderer.send("stop-task", active_task_id);
+            } catch (err) {
+                console.log('doStopTask', err)
+            }
+            status = '1';
+
+        } else {
+            $('.warning-div').find('span').text('Could not stop tasks. Please check your internet connection or try again later');
+            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+
+            status = '0';
+        }
+
+        if (status == '1') {
+            if(button){
+                button.attr('rel', 'play');
+                button.attr('title', 'Start task');
+                button.parent().parent().parent().parent().parent().find('#cur-icon').find('svg').remove();
+                button.parent().parent().parent().parent().parent().find('#cur-icon').html(play_icon);
+                button.parent().parent().parent().parent().parent().find('.tm-ctr').removeClass('timer-ctr');
+                button.parent().parent().parent().parent().parent().find('.tm-ctr').text('');
+                $('.tm-ctr').text('');
+                $('.collapse-anchor').attr('rel', 'no-action');
+                button.parent().parent().parent().parent().parent().attr('rel', 'no-action');
+            }
+            ontask = false;
+            getTimedInUserData('no');
+            localStorage.removeItem("userCurrentTaskId");
+
+        } else {
+            $('.warning-div').find('span').text(data + 'Server busy. Please try again.');
+            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+        }
+    } catch(error) {
+        locked = false
+        const errorMessage = error.message || 'Undefined error';
+        $('.warning-div').find('span').text('Could not stop tasks due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+    }
 }
 
 //break start
-function startBreak(access_token) {
-    //var status = '';
-    return Promise.resolve($.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+async function startBreak(button) {
+    /*
         url: remote_url + '/api/users/break-start',
         type: 'post',
-        async: true,
         data: { 'access_token': access_token },
-    }));
+    */
+    if(locked) return
+    locked = true
 
-    //return status;
+    const url = `${remote_url}/api/users/break-start`;
+    try{
+        const response = await axios.post(url,{
+            access_token: access_token
+        });
+        locked = false
+        const data = response.data;
+
+        if (data.status == 'success') {
+            ipcRenderer.send("start-break", data);
+            getTimedInUserData('no');
+            if (ontask == true) {
+                button.parent().parent().parent().parent().parent().find('.btn-sm-play').click();
+            }
+
+            button.parent().parent().parent().parent().parent().find('#break-timer').addClass('timer-br');
+            button.parent().parent().parent().parent().parent().find('.timer-br').text('0:00:00');
+            button.parent().parent().parent().parent().parent().find('.curr-break-icon').find('svg').remove();
+            button.parent().parent().parent().parent().parent().find('.curr-break-icon').html(stop_icon_br);
+
+            onbreak = true;
+        } else {
+            $('.warning-div').find('span').text('Could not start break. Please check your internet connection or try again later');
+            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+        }
+
+
+    } catch(error){
+        locked = false
+        const errorMessage = error.message || 'Undefined error';
+        $('.warning-div').find('span').text('Could not start break due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+    }
 }
 
 //break stop
-function stopBreak(access_token) {
-    //var status = '';
-    return Promise.resolve($.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+async function stopBreak(button) {
+    /*
         url: remote_url + '/api/users/break-stop',
         type: 'post',
         async: false,
         data: { 'access_token': access_token },
-    }));
-    //return status;
+    */
+    if(locked) return
+    locked = true
+
+    const url = `${remote_url}/api/users/break-stop`;
+    try{
+        const response = await axios.post(url,{
+            access_token: access_token
+        });
+        locked = false
+        const data = response.data;
+
+        console.log('stopBreak', data);
+        if (data.status == 'success') {
+            ipcRenderer.send("stop-break", '1');
+            getTimedInUserData('no');
+            button.parent().parent().parent().parent().parent().find('.curr-break-icon').find('svg').remove();
+            button.parent().parent().parent().parent().parent().find('.curr-break-icon').html(break_icon);
+            button.parent().parent().parent().parent().parent().find('#break-timer').removeClass('timer-br');
+            button.parent().parent().parent().parent().parent().find('#break-timer').text('');
+            $('.collapse-anchor').attr('rel', 'no-action');
+            button.hide();
+            onbreak = false;
+        } else {
+            $('.warning-div').find('span').text('Server busy. Please try again');
+            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+        }
+    } catch(error){
+        locked = false
+        const errorMessage = error.message || 'Undefined error';
+        $('.warning-div').find('span').text('Could not start break due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+    }
 }
 
 function getTimedInUserData(resumed) {
     var userdata = JSON.parse(localStorage.getItem("userDataTimedlyNewton"));
     var idletime = localStorage.getItem("idletime") ? localStorage.getItem("idletime") : '0';
-    var settings_data = [];
-    $.each(userdata, function(key, value) {
-        if (key == 'settings') {
+    //var settings_data = [];
+    //$.each(userdata, function(key, value) {
+    //    if (key == 'settings') {
             ////console.log(value);
-            $.each(value, function(k, v) {
-                settings_data.push(v);
+    //        $.each(value, function(k, v) {
+    //            settings_data.push(v);
                 ////console.log(v);
-            });
-        }
-    });
+    //        });
+    //    }
+    //});
+    //idle-interval: 10 screenshot-interval: 2
+    const idle_timer = userdata.settings['idle-interval']
+    const sc_interval = userdata.settings['screenshot-interval']
 
-    var idle_timer = Math.floor(idletime / 60) * 60;
-    var sc_interval = Math.floor(settings_data[1] / 60) * 60;
+    //var idle_timer = Math.floor(idletime / 60) * 60;
+    //var sc_interval = Math.floor(settings_data[1] / 60) * 60;
+    if(parseInt(idletime) <= 0){
+        idletime = Math.floor(parseInt(idle_timer) / 60) * 60;
+        if(idletime < 60) idle_timer = 600;
+    }   
     $('#user_idle_sec').text(Math.floor(idletime / 60));
 
     try {
-        ipcRenderer.send("logged-user", settings_data[0] + '|' + settings_data[1] + '|' + user_id + '|' + access_token + '|' + remote_url + '|' + resumed);
+        ipcRenderer.send("logged-user", {idle_timer, sc_interval , user_id, access_token, remote_url, resumed});
+        //ipcRenderer.send("logged-user", settings_data[0] + '|' + settings_data[1] + '|' + user_id + '|' + access_token + '|' + remote_url + '|' + resumed);
         //window.webkit.messageHandlers.scriptHandler.postMessage(idle_timer + '|' + sc_interval + '|' + user_id + '|' + access_token + '|' + remote_url + '|' + resumed);
-        idle_timer = null;
-        sc_interval = null;
+        //idle_timer = null;
+        //sc_interval = null;
 
     } catch (err) {
         //console.log('The native context does not exist yet');
     }
 }
 
-function postIdle(idleType, access_token) {
+async function postIdle(idleType) {
+    if(locked) return
+    locked = true
 
-    var idle_url = idleType == 'start' ? '/api/users/idle-start' : '/api/users/idle-stop';
+    var idle_url = (idleType == 'start') ? '/api/users/idle-start' : '/api/users/idle-stop';
     $('#idleError').text('')
 
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+    /*
         url: remote_url + idle_url,
         type: 'post',
         async: false,
         data: { 'access_token': access_token },
-        success: function(data) {
-            //console.log(data);
+    */
+    const url = `${remote_url}${idle_url}`;
+    try{
+        const response = await axios.post(url,{
+            access_token: access_token
+        });
+        locked = false
+        const data = response.data;
 
-            if (data.status == 'success') {
-                if (idleType == 'stop') {
-                    //try {
-                    ipcRenderer.send('idle-stop', '1');
-                    //} catch(err) {
-                    //console.log('feature not available');
-                    //}
-                }
-            } else {
-                $('#idleError').text('Could not stop idle. Please check your internet connection or try again later.');
+        if (data.status == 'success') {
+            if (idleType == 'stop') {
+                ipcRenderer.send('idle-stop', '1');
             }
+        } else {
+            $('#idleError').text('Could not stop idle. Please check your internet connection or try again later.');
         }
-    });
-
+    } catch(error){
+        locked = false
+        const errorMessage = error.message || 'Undefined error';
+        $('#idleError').text('Could not stop idle due to error: "' + errorMessage +'". Please check your internet connection or try again later.');
+    }
 }
 
 function getRequestConcern(access_token = access_token) {
@@ -826,6 +1118,10 @@ function getRequestConcern(access_token = access_token) {
         }
     });
 }
+$(document).on('click', '#notif-toggle', function(e){
+    e.preventDefault();
+    shell.openExternal(remote_url + '/dashboard/requests')
+})
 
 $(document).on('click', '#td-req', function() {
     var result = $(this).attr('rel').split('|');
@@ -931,7 +1227,9 @@ $(document).on('click', '#logout', function() {
         try {
             window.webkit.messageHandlers.relayLogoutHandler.postMessage("logout");
             window.webkit.messageHandlers.relayStatusHandler.postMessage("stoptimer");
-        } catch (err) {}
+        } catch (err) {
+            console.log('logout error ', err)
+        }
 
         logoutUserToFront();
 
@@ -942,65 +1240,22 @@ var stop_icon_br = '<svg width="1.4em" height="1.4em" viewBox="0 0 16 16" class=
 var break_icon = '<svg id="break-svg" width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-cup-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M1 2a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v1h.5A1.5 1.5 0 0 1 16 4.5v7a1.5 1.5 0 0 1-1.5 1.5h-.55a2.5 2.5 0 0 1-2.45 2h-8A2.5 2.5 0 0 1 1 12.5V2zm13 10h.5a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.5-.5H14v8z"/></svg>';
 
 $(document).on('click', '.btn-sm-break', function(e) {
-    const that = this;
     if (ontask === true) {
         $('.warning-div').find('span').text('You are currently on a task. Please stop the task to continue.');
         $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
     } else {
-        if ($(this).attr('rel') == 'busy') {
-            //console.log('break here');
-            var currentTaskId = localStorage.getItem("userCurrentTaskId");
+        if ($(this).attr('rel') == 'busy') {         
             $(this).attr('rel', 'break');
             $(this).attr('title', 'Resume');
             $('#logged-status').text('Break');
-
             $('.collapse-anchor').attr('rel', 'break-action');
             $(this).parent().parent().parent().parent().parent().attr('rel', 'no-action');
-            startBreak(access_token, currentTaskId).then(data => {
-                if (data.status == 'success') {
-                    ipcRenderer.send("start-break", data);
-                    getTimedInUserData('no');
-                    if (ontask == true) {
-                        $(that).parent().parent().parent().parent().parent().find('.btn-sm-play').click();
-                    }
-
-                    $(that).parent().parent().parent().parent().parent().find('#break-timer').addClass('timer-br');
-                    $(that).parent().parent().parent().parent().parent().find('.timer-br').text('0:00:00');
-
-                    $(that).parent().parent().parent().parent().parent().find('.curr-break-icon').find('svg').remove();
-                    $(that).parent().parent().parent().parent().parent().find('.curr-break-icon').html(stop_icon_br);
-
-                    onbreak = true;
-                } else {
-                    $('.warning-div').find('span').text('Could not start break. Please check your internet connection or try again later');
-                    $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-                    //$('.warning-div').find('span').text('Server busy. Please try again');
-                    //$('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-                }
-
-            })
-
-        } else {
-            onbreak = false;
+            startBreak( $(this))
+        } else {        
             $(this).attr('rel', 'busy');
             $(this).attr('title', 'Pause/break');
             $('#logged-status').text('Timed In');
-            stopBreak(access_token).then(data => {
-                console.log(data);
-                if (data.status == 'success') {
-                    ipcRenderer.send("stop-break", '1');
-                    getTimedInUserData('no');
-                    $(that).parent().parent().parent().parent().parent().find('.curr-break-icon').find('svg').remove();
-                    $(that).parent().parent().parent().parent().parent().find('.curr-break-icon').html(break_icon);
-                    $(that).parent().parent().parent().parent().parent().find('#break-timer').removeClass('timer-br');
-                    $(that).parent().parent().parent().parent().parent().find('#break-timer').text('');
-                    $('.collapse-anchor').attr('rel', 'no-action');
-                    $(that).hide();
-                } else {
-                    $('.warning-div').find('span').text('Server busy. Please try again');
-                    $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-                }
-            })
+            stopBreak($(this))
 
         }
     }
@@ -1029,87 +1284,28 @@ $(document).on('click', '.btn-sm-play', function(e) {
 
             if (btn_attr == 'play') {
 
-                const doStartTaskPromise = doStartTask(access_token, name.trim(), description.trim(), $(this))
-                doStartTaskPromise.then(data => {
-                    let status
-                    if (data.status == 'success') {
-                        active_task_id = data.data.id;
-                        ipcRenderer.send("start-task", name);
-                        ipcRenderer.send("new-task-name", name);
-                        status = '1';
-                    } else {
-                        $('.warning-div').find('span').text('Could not start task. Please check your internet connection or try again later');
-                        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-                        status = '0';
-                    }
-
-                    if (status == '1') {
-                        $(this).attr('rel', 'stop');
-                        $(this).attr('title', 'Stop task');
-                        $(this).parent().parent().parent().parent().parent().find('#cur-icon').find('svg').remove();
-                        $(this).parent().parent().parent().parent().parent().find('#cur-icon').html(stop_icon);
-
-                        $(this).parent().parent().parent().parent().parent().find('.tm-ctr').addClass('timer-ctr');
-                        $(this).parent().parent().parent().parent().parent().find('.tm-ctr').text('0:00:00');
-                        $(this).parent().parent().parent().parent().parent().find('.btn-sm-break').show();
-
-                        $('.collapse-anchor').attr('rel', 'task-action');
-
-                        $(this).parent().parent().parent().parent().parent().attr('rel', 'no-action');
-
-                        ontask = true;
-
-                        getTimedInUserData('yes');
-                    } else {
-                        $('.warning-div').find('span').text('Server busy. Please try again.');
-                        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-                    }
-                });
+                //const doStartTaskPromise = doStartTask(access_token, name.trim(), description.trim(), $(this))
+                doStartTask(name.trim(), description.trim(), $(this))
+                //doStartTaskPromise.then(data => {
+                   
+                //}).catch(error=>{
+                //    const errorMessage = error.message || 'Undefined error'
+                //    $('.warning-div').find('span').text('Could not stop tasks due to an error: ' + errorMessage );
+                //    $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+                //});
 
             } else {
-                var lat = $('#universal_access_token').val();
-                var stoppingTaskPromise = doStopTask(lat, active_task_id);
-                stoppingTaskPromise.then(data => {
-                    let status
-                    if (data.status == 'success') {
-                        try {
-                            ipcRenderer.send("stop-task", active_task_id);
-                        } catch (err) {
-                            console.log('doStopTask', err)
-                        }
-                        status = '1';
+                //var lat = $('#universal_access_token').val();
+                //var stoppingTaskPromise = doStopTask(lat, active_task_id);
+                doStopTask( $(this))
+                //stoppingTaskPromise.then(data => {
+                   
 
-                    } else {
-                        $('.warning-div').find('span').text('Could not stop tasks. Please check your internet connection or try again later');
-                        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-
-                        status = '0';
-                    }
-
-                    if (status == '1') {
-                        $(this).attr('rel', 'play');
-                        $(this).attr('title', 'Start task');
-                        $(this).parent().parent().parent().parent().parent().find('#cur-icon').find('svg').remove();
-                        $(this).parent().parent().parent().parent().parent().find('#cur-icon').html(play_icon);
-
-
-                        $(this).parent().parent().parent().parent().parent().find('.tm-ctr').removeClass('timer-ctr');
-                        $(this).parent().parent().parent().parent().parent().find('.tm-ctr').text('');
-
-                        $('.tm-ctr').text('');
-
-                        $('.collapse-anchor').attr('rel', 'no-action');
-                        $(this).parent().parent().parent().parent().parent().attr('rel', 'no-action');
-
-
-                        ontask = false;
-                        getTimedInUserData('no');
-                    } else {
-                        $('.warning-div').find('span').text(data + 'Server busy. Please try again.');
-                        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-                    }
-
-                })
+                //}).catch(error=>{
+                //    const errorMessage = error.message || 'Undefined error'
+                //    $('.warning-div').find('span').text('Could not stop tasks due to an error: ' + errorMessage );
+                //    $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+                //})
 
 
             }
@@ -1558,7 +1754,7 @@ $('#modalReqOvertime').on('hide.bs.modal', function(e) {
     $('#modalReqOvertime textarea').val('');
 });
 
-$('#pp-send-message').click(function(e) {
+$('#pp-send-message').on('click', async function(e) {
     e.preventDefault();
 
     if ($('#msg-reply').val() == '') {
@@ -1568,24 +1764,27 @@ $('#pp-send-message').click(function(e) {
         var to = $('#reply-receiver').val();
         var from = $('#reply-sender').val();
         var reply_to = $('#reply-to').val();
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
+        /*
             url: remote_url + '/api/users/message-save',
             type: 'post',
             async: false,
             data: { 'access_token': access_token, 'message': message, 'to': to, 'from': from, 'reply_to': reply_to },
-            success: function(data) {
+        */
+       try{
+           const response = await axios.post(remote_url + '/api/users/message-save', {
+            'access_token': access_token, 'message': message, 'to': to, 'from': from, 'reply_to': reply_to
+           })
+           const data = response.data
                 //console.log(data);
-                if (data == '1') {
-                    //$('#modalMessageCenter').modal('hide');
-                    $('#msg-reply').val('');
-                    $('#err-handler-msg').text('');
-                    $('#success-handler-msg').text('message sent');
-                }
+            if (data == '1') {
+                //$('#modalMessageCenter').modal('hide');
+                $('#msg-reply').val('');
+                $('#err-handler-msg').text('');
+                $('#success-handler-msg').text('message sent');
             }
-        });
+        }catch(error){
+            console.log(error)
+        }        
     }
 });
 
@@ -1666,8 +1865,8 @@ ipcRenderer.on("clock-out", function(event, t) {
     clockOutUser(access_token);
 });
 
-ipcRenderer.on("idle-report", function(event, t) {
-    postIdle('start', access_token);
+ipcRenderer.on("idle-report", async function(event, t) {
+    await postIdle('start');
     remindUserIdle();
     let sound = new Audio(path.join(__dirname, '/assets/audio/message.mp3'));
     sound.play();

@@ -31,7 +31,7 @@ VERSION=`node getVersion.js`
 #sed -i.bu "s/version: '___V___'/version: \"${VERSION}\"/" src/env.js
 #sed -i.bu "s/platform: '___V___'/platform: \"${PLATFORM}\"/" src/env.js
 
-URL=`node getUploadUrl.js`
+#URL=`node getUploadUrl.js`
 
 source "./deploy/${BUILD_TYPE}.tokens.sh"
 
@@ -50,9 +50,9 @@ then
     FILEPATH="./_app/installers/darwin/VaClientApp.${VERSION}.dmg"
 fi
 
-echo "curl -X POST -H \"Token: ${TOKENS[0]}\" -F \"version=${VERSION}\" -F \"file=@${FILEPATH}\" \"${URL}/${PLATFORM}\""
-curl -X POST -H "Token: ${TOKENS[0]}" -F "version=${VERSION}" -F "file=@${FILEPATH}" -i "${URL}/${PLATFORM}"
+#echo "curl -X POST -H \"Token: ${TOKENS[0]}\" -F \"version=${VERSION}\" -F \"file=@${FILEPATH}\" \"${URL}/${PLATFORM}\""
+#curl -X POST -H "Token: ${TOKENS[0]}" -F "version=${VERSION}" -F "file=@${FILEPATH}" -i "${URL}/${PLATFORM}"
 
-rm -f $FILEPATH
+#rm -f $FILEPATH
 
 #done

@@ -10,3 +10,5 @@ _app/installers/darvin/*
 _app/installers/win32/*
 src/env.js 
 .DS_Store
+dist/*
+electron-builder.yml
