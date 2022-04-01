@@ -1,7 +1,7 @@
 {
     "name": "VAClientApp",
     "productName": "VAClientApp",
-    "version": "2.0.7",
+    "version": "2.0.8",
     "description": "Virtudesk VAClient Tracker",
     "main": "main.js",
     "type": "commonjs",
