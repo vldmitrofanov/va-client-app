@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain, net, dialog, autoUpdater } = require('electron')
+const { app, BrowserWindow, ipcMain, net, dialog } = require('electron')
+const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
 const url = require('url');
