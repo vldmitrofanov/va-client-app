@@ -16,11 +16,11 @@ const server = 'https://dist.unlock.sh/v1/electron'
 const productId = '8ed8c913-a5e2-4d18-b668-e9aa7a2417b4'
 // If you require a valid license, you will need to pass the user's license key.
 // You will need to store the user's license key somewhere.
-const key = appSettings.unlockKey;
-const updateUrl = `${server}/${productId}/releases?key=${key}`
+//const key = appSettings.unlockKey;
+//const updateUrl = `${server}/${productId}/releases?key=${key}`
  
 // If you don't require a license to download new releases you can omit the key from the url.
-const url = `${server}/${productId}/releases`
+const updateUrl = `${server}/${productId}/releases`
  
 autoUpdater.setFeedURL({
     url: updateUrl,
