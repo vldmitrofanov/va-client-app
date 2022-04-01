@@ -551,9 +551,9 @@ app.on('ready', function() {
     if (process.env.NODE_ENV == 'development-' || process.platform == 'darwin') {
         return
     } else {
-        //setTimeout(() => {
+        setTimeout(() => {
             autoUpdater.checkForUpdatesAndNotify()
-        //}, 3000)
+        }, 3000)
         
     }
 });
@@ -587,7 +587,7 @@ autoUpdater.on('update-available', () => {
 });
 
 //autoUpdater.on('update-downloaded', () => {
-//    mainWindow.webContents.send('update_downloaded');
+//    win.webContents.send('update_downloaded');
 //});
 
 ipcMain.on('app_version', (event) => {
