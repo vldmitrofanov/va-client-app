@@ -1,6 +1,0 @@
-{
-    "HOST": "http://portal.myvirtudesk.com",
-    "PORT": "3000",
-    "IDLE_TIMEOUT_SECONDS": "300",
-    "DEBUG": "0"
-}

@@ -13,3 +13,4 @@ dist/*
 electron-builder.yml
 .env
 deploy/*
+NOTES

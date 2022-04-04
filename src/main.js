@@ -3,8 +3,6 @@ const path = require('path');
 const { appSettings } = require('./env.js')
 const axios = require('axios')
 
-//var remote_url = 'https://portal.myvirtudesk.com';
-//var remote_url = 'http://54.212.185.214';
 const remote_url = appSettings.remote_url
 console.log(remote_url)
 
@@ -24,10 +22,12 @@ var goOT = false;
 //var todays_attendance = [];
 //var curr_task_id = '';
 //var btn_task_id = '';
-var num_message = 0;
+//var num_message = 0;
 var user_data = '';
 var active_task_id = localStorage.getItem("userCurrentTaskId") || '';
 var locked = false;
+const MAX_PING_PONG_ERROR_COUNT = 5;
+
 if(!access_token || access_token == ''){
     window.location.href = 'index.html';
 }
@@ -40,14 +40,14 @@ setInterval(()=>{
     }
 },200)
 
- //require("@babel/polyfill")
- checkPresence();
 
- getUserSchedules().then(()=>{
+checkPresence();
+
+getUserSchedules().then(()=>{
     getUserSchedulesAll().then(()=>{
         getUserTimesheets();
     })
- })
+})
 
  $('#datepicker').datepicker();
  $('#datepicker2').datepicker();
@@ -68,15 +68,13 @@ setInterval(()=>{
    $(this).parent('div').hide();
  });
 
-
  $('#send-new-report').on('click', function () {
-   sendNewReport(access_token);
+   sendNewReport();
  });
 
  $('#clock-out').on('click', function () {
    clockOut(access_token);
  });
-
 
  $('#testupload').on('click', function () {
    var data = '100||100||' + access_token
@@ -84,9 +82,8 @@ setInterval(()=>{
  });
 
  $('#modalIdelRemind').on('hide.bs.modal', function (e) {
-   resumedIdle(access_token);
+   resumedIdle();
  });
-
 
  $("html").on("dragover", function (e) {
    e.preventDefault();
@@ -120,8 +117,6 @@ setInterval(()=>{
    var dropzone = $(this);
 
    var de = $('#file');
-
-
 
    var file = e.originalEvent.dataTransfer.files;
    var fd = new FormData();
@@ -199,14 +194,6 @@ function checkPresence() {
 
     $('[id="universal_access_token"]').val(access_token);
 
-
-    //try {
-    //window.webkit.messageHandlers.relayStatusHandler.postMessage("stoptimer");
-    //}catch(err){
-
-    //}
-
-    //getMessages(access_token);
 }
 
 if(parseInt(active_task_id) > 0){
@@ -271,12 +258,13 @@ async function getUserTasks() {
 
         $('.tab-pane').find('.list-task-box').html(play_break_btn);
         $('#db-tasks').html(clientTasks);
-        locked = false
+
     } catch (e) {
-        locked = false
         const errorMessage = e.message || 'Undefined error'
         $('.warning-div').find('span').text('Could not get tasks due to an error: ' + errorMessage );
         $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+    } finally {
+        locked = false
     }
 }
 
@@ -372,42 +360,35 @@ async function getUserSchedules() {
             });
 
             console.log('sked id ' + sked_id);
-            //try {
-            //window.webkit.messageHandlers.relayOvertime.postMessage(user_eod);
-            //}catch(err){
-            //}
-            //log user here
+
             if (sked_id != '') {
                 $('#current-sched-options').html(current_sched_options);
-                //setAttendance(access_token, user_id, sked_id);
+
                 $('#logged-status').text('Not Timed In');
-                //var got = localStorage.getItem("goOT");
 
-
-                //if(got != 'true'){
                 $("#timeinModal").clone().appendTo($(".timeinclone"));
-                //}
 
                 if (safe_to_login === true) {
-                    setAttendance(access_token, user_id, sked_id);
+                    setAttendance(access_token, sked_id);
                 } else {
                     $('#timeinModal').modal('show');
                 }
 
             } else {
-                //alert('this');
                 $('#current-sched-options').html(current_sched_options);
                 $('#timeinModal').modal('show');
                 $("#timeinModal").clone().appendTo($(".timeinclone"));
                 $('.tab-pane').find('.list-task-box').html('<div>No schedule set at this time. Please click the schedules tab for the list of schedules or relogin to previous set of schedules.</div>');
             }
         }
+        return true
         //locked = false
     } catch(error){
-        //locked = false
-        const errorMessage = e.message || 'Undefined error'
-        $('.warning-div').find('span').text('Could not get schedules due to an error: ' + errorMessage );
+        console.log('getUserSchedules', error)
+        $('.warning-div').find('span').text('The server returned an error while trying to pull out schedules.');
         $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+        const message = error.message || `can't get schedules`
+        ipcRenderer.send('app_log_error', 'getUserSchedules returned error: ' + message);
     }
 
 }
@@ -456,49 +437,56 @@ async function getUserTimesheets() {
         $('#db-ts').html(dbTs);
     } catch(error){
         //locked = false
-        const errorMessage = e.message || 'Undefined error'
+        const errorMessage = error.message || 'Undefined error'
         $('.warning-div').find('span').text('Could not get timesheets due to an error: ' + errorMessage );
         $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
     }
 }
 
-function getUserReports() {
+async function getUserReports() {
     //Reports
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
+    /*
         url: remote_url + '/api/users/reports',
         type: 'post',
         data: { 'access_token': access_token },
-        success: function(data) {
-            var html = 'No reports found';
-            var show_error = [];
+    */
+    try{
+        const response = await axios.post( `${remote_url}'/api/users/reports`,
+        { 'access_token': access_token }
+        )
+        const data = response.data
+        var html = 'No reports found';
+        var show_error = [];
 
-            console.log(data);
+        console.log(data);
 
-            if (data.status == 'success') {
-                Object.entries(data).forEach(([key, val]) => {
-                    if (key == 'data') {
-                        if (val.length > 0) {
-                            Object.entries(val).forEach(([k, v]) => {
-                                if (v.today == true) {
-                                    show_error.push('1');
-                                }
+        if (data.status == 'success') {
+            Object.entries(data).forEach(([key, val]) => {
+                if (key == 'data') {
+                    if (val.length > 0) {
+                        Object.entries(val).forEach(([k, v]) => {
+                            if (v.today == true) {
+                                show_error.push('1');
+                            }
 
-                                let date = moment(v.date, 'YYYY-MM-DD h:mm:ss A').format('MMMM DD, YYYY');
-                                html += '<tr><td scope="row">' + v.type + '</td><td><span class="truncate-texts">' + v.report + '</span></td><td>' + date + '</td></tr>';
-                            });
-                        }
+                            let date = moment(v.date, 'YYYY-MM-DD h:mm:ss A').format('MMMM DD, YYYY');
+                            html += '<tr><td scope="row">' + v.type + '</td><td><span class="truncate-texts">' + v.report + '</span></td><td>' + date + '</td></tr>';
+                        });
                     }
-                });
-            }
-            if (show_error.length == 0) {
-                $('.error-div').css('display', 'inline-block');
-            }
-            $('#reports-table').html(html);
+                }
+            });
         }
-    });
+        if (show_error.length == 0) {
+            $('.error-div').css('display', 'inline-block');
+        }
+        $('#reports-table').html(html);
+    } catch(error){
+        //locked = false
+        const errorMessage = e.message || 'Undefined error'
+        $('.warning-div').find('span').text('Could not get reports due to an error: ' + errorMessage );
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+    }
+
 }
 
 async function clockOutUser() {
@@ -528,14 +516,14 @@ async function clockOutUser() {
    }
 }
 
-async function logoutUserToFront() {  
+async function logoutUserToFront(force=false) {  
     if(locked) return
     locked = true
     const url = `${remote_url}/api/auth/logout?access_token=${access_token}`
     try{
         const response = await axios.get(url)
         const data = response.data
-        if (data.status == 'success') {
+        if (data.status == 'success' || force) {
             localStorage.removeItem("userDataTimedlyNewton");
             localStorage.removeItem("userDataTimedlyTimedin");
             localStorage.removeItem("goOT");
@@ -544,29 +532,19 @@ async function logoutUserToFront() {
         } else {
             $('.warning-div').find('span').text('A task is currently running. Please stop the task to proceed.');
             $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
-
         }
     } catch(e){
+        $('.warning-div').find('span').text('A task is currently running. Please stop the task to proceed.');
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
         console.log(e)
     } finally{
         locked = false
     }
 }
 
-function logoutUserQuit() {
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: remote_url + '/api/auth/logout',
-        type: 'get',
-        data: { 'access_token': access_token },
-        success: function(data) {}
-    });
-}
 
 async function getUserSchedulesAll() {
-    locked = true
+    //locked = true
     try{
         const response = await axios.get(`${remote_url}/api/users/schedules?access_token=${access_token}`)
         const data = response.data
@@ -639,69 +617,74 @@ async function getUserSchedulesAll() {
 
         $('#db-scheds').html(to_dashboard_box);
         $('.sched-pane').find('#schedules-table').html(html);
+        return true
     } catch(e){
-        console.log(e)
-    } finally{
-        locked = false
+        console.log('getUserSchedulesAll', e)
+        $('.warning-div').find('span').text('A connection error has occured while trying to pull out schedules');
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+        const errMessage = e.message || `can't get all schedules`
+        ipcRenderer.send('app_log_error', 'getUserSchedulesAll returned error: ' + errMessage);
+        //logoutUserToFront()
+    } 
+}
+
+async function setAttendance(access_token, schedule_id) {
+
+    schedule_id = schedule_id || $("#current-sched-options option:selected").val();
+    const message = $('#message-text').val();
+    const url = remote_url + '/api/users/attendance';
+
+    try{
+        const response = await axios.post(url, { 'schedule_id': schedule_id, 'late_reason': message, 'access_token': access_token })
+    
+        const data = response.data
+        if (data.status == 'success') {
+            $('.timein-div').css('display', 'inline-block');
+            $('.timein-div').attr('rel', data.id);
+            $('.timeout-div').css('display', 'none');
+            $('#timeinModal').modal('hide');
+            $('#logged-status').text('Timed In');
+            localStorage.setItem("userDataTimedlyTimedin", "1");
+            $('#tasks-div').show();
+            //getTimedInUserData('no');
+            getUserTasks();
+            return true
+        }
+        throw 'setAttendance returned error'
+    } catch (e) {
+        console.log('setAttendance',e)
+        $('.warning-div').find('span').text('A connection error has occured while trying to set attendance');
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+        const errMessage = e.message || `can't set attendance`
+        ipcRenderer.send('app_log_error', errMessage);
     }
 }
 
-function setAttendance(access_token, user_id, schedule_id) {
-
-    var schedule_id = $("#current-sched-options option:selected").val();
-    var message = $('#message-text').val();
-
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: remote_url + '/api/users/attendance',
-        type: 'post',
-        data: { 'schedule_id': schedule_id, 'late_reason': message, 'access_token': access_token },
-        success: function(data) {
-            //console.log(data);
-
-            if (data.status == 'success') {
-                $('.timein-div').css('display', 'inline-block');
-                $('.timein-div').attr('rel', data.id);
-                $('.timeout-div').css('display', 'none');
-                $('#timeinModal').modal('hide');
-                $('#logged-status').text('Timed In');
-                localStorage.setItem("userDataTimedlyTimedin", "1");
-                $('#tasks-div').show();
-                //getTimedInUserData('no');
-                getUserTasks(access_token);
-            }
-        }
-    });
-}
-
-function sendNewReport(access_token) {
+async function sendNewReport() {
     var type = $('#report-type').val();
     var report = $('#report-text').val();
     post_url = '';
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: remote_url + '/api/users/' + type,
-        type: 'post',
-        data: { 'access_token': access_token, 'type': type, 'report': report },
-        success: function(data) {
-            console.log(data);
-            if (data.status == 'success') {
-                $('#reportModal').modal('hide');
-                $('.error-div').hide();
-                //location.reload();
-                $('#report-text').val('');
-                getUserReports(access_token);
-            } else {
-                $('#report-text').val('');
-                $('#reportModal').modal('hide');
-                $('.error-div-sod').show();
-            }
+    try{
+        const response = await axios.post(remote_url + '/api/users/' + type, { 'access_token': access_token, 'type': type, 'report': report })
+        const data = response.data
+        if (data.status == 'success') {
+            $('#reportModal').modal('hide');
+            $('.error-div').hide();
+            $('#report-text').val('');
+            getUserReports();
+        } else {
+            $('#report-text').val('');
+            $('#reportModal').modal('hide');
+            $('.error-div-sod').show();
         }
-    });
+        return true
+    } catch(e){
+        console.log('sendNewReport',e)
+        $('.warning-div').find('span').text('A server error has occured while trying to send a report');
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+        const errMessage = e.message || `can't send a report`
+        ipcRenderer.send('app_log_error', 'sendNewReport error: ' + errMessage);
+    }
 }
 
 function loadTasks(access_token) {
@@ -748,27 +731,13 @@ function clockOut(access_token) {
     }
 }
 
-async function doPingpong(access_token, user_id) {
+var pingPongErrorCount = 0;
+
+async function doPingpong() {
     /*
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
         url: remote_url + '/api/users/ping-pong',
         type: 'post',
         data: { 'access_token': access_token, 'user_id': user_id },
-        success: function(data) {
-
-            if (data.status == 'error') {
-                if (data.case == 'auth') {
-                    localStorage.removeItem("userDataTimedlyNewton");
-                    localStorage.removeItem("userDataTimedlyTimedin");
-                    window.location.href = 'index.html';
-                }
-            }
-        },
-        error: function(XMLHttpRequest, textStatus, errorThrown) {}
-    });
     */
    const url = remote_url + '/api/users/ping-pong'
    try{
@@ -778,35 +747,35 @@ async function doPingpong(access_token, user_id) {
     const data = response.data
     if (data.status == 'error') {
         if (data.case == 'auth') {
-            localStorage.removeItem("userDataTimedlyNewton");
-            localStorage.removeItem("userDataTimedlyTimedin");
-            window.location.href = 'index.html';
+            //localStorage.removeItem("userDataTimedlyNewton");
+            //localStorage.removeItem("userDataTimedlyTimedin");
+            //window.location.href = 'index.html';
+            pingPongErrorCount = MAX_PING_PONG_ERROR_COUNT
         }
     }
    }  catch(error) {
         $('.warning-div').find('span').text('Could not connect to the main server! Please check your internet connection' );
         $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+        pingPongErrorCount++
+   } finally {
+       if(pingPongErrorCount >= MAX_PING_PONG_ERROR_COUNT){
+        logoutUserToFront(true)
+        pingPongErrorCount = 0
+       }
    }
 }
 
 async function doStartTask( name, description, button) {
-    console.log(name);
     if(locked) return
     locked = true
     /*
-    return Promise.resolve($.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
         url: remote_url + '/api/users/tasks',
         type: 'post',
-        async: true,
         data: { 'access_token': access_token, 'name': name, 'description': description },
-    }));
     */
-    const url = `${remote_url}/api/users/tasks?access_token=${access_token}&name=${name}&description=${description}`
+    const url = `${remote_url}/api/users/tasks`
     try{       
-        const response = await axios.post(url)
+        const response = await axios.post(url, { 'access_token': access_token, 'name': name, 'description': description })
         const data = response.data
         locked = false
         console.log(data)
@@ -897,16 +866,17 @@ async function doStopTask(button) {
             ontask = false;
             getTimedInUserData('no');
             localStorage.removeItem("userCurrentTaskId");
-
+            return true
         } else {
             $('.warning-div').find('span').text(data + 'Server busy. Please try again.');
-            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+            $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
+            throw 'doStopTask failed'
         }
     } catch(error) {
         locked = false
         const errorMessage = error.message || 'Undefined error';
         $('.warning-div').find('span').text('Could not stop tasks due to an error: ' + errorMessage );
-        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+        $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(2000);
     }
 }
 
@@ -960,7 +930,6 @@ async function stopBreak(button) {
     /*
         url: remote_url + '/api/users/break-stop',
         type: 'post',
-        async: false,
         data: { 'access_token': access_token },
     */
     if(locked) return
@@ -971,7 +940,6 @@ async function stopBreak(button) {
         const response = await axios.post(url,{
             access_token: access_token
         });
-        locked = false
         const data = response.data;
 
         console.log('stopBreak', data);
@@ -990,10 +958,12 @@ async function stopBreak(button) {
             $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
         }
     } catch(error){
-        locked = false
+       
         const errorMessage = error.message || 'Undefined error';
         $('.warning-div').find('span').text('Could not start break due to an error: ' + errorMessage );
         $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+    } finally {
+        locked = false
     }
 }
 
@@ -1044,14 +1014,11 @@ async function postIdle(idleType) {
     /*
         url: remote_url + idle_url,
         type: 'post',
-        async: false,
         data: { 'access_token': access_token },
     */
     const url = `${remote_url}${idle_url}`;
     try{
-        const response = await axios.post(url,{
-            access_token: access_token
-        });
+        const response = await axios.post(url,{access_token: access_token});
         locked = false
         const data = response.data;
 
@@ -1059,8 +1026,10 @@ async function postIdle(idleType) {
             if (idleType == 'stop') {
                 ipcRenderer.send('idle-stop', '1');
             }
+            return true
         } else {
             $('#idleError').text('Could not stop idle. Please check your internet connection or try again later.');
+            throw 'Could not stop idle'
         }
     } catch(error){
         locked = false
@@ -1069,64 +1038,60 @@ async function postIdle(idleType) {
     }
 }
 
-function getRequestConcern(access_token = access_token) {
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: remote_url + '/api/users/requests-concerns',
-        dataType: 'json',
-        type: 'post',
-        async: false,
-        data: { 'access_token': access_token },
-        success: function(data) {
+async function getRequestConcern() {
+    const url = remote_url + '/api/users/requests-concerns'
+    try {
+        const response = await axios.post(url, { 'access_token': access_token })
+        const data = response.data
 
-            console.log(data);
+        console.log(data);
 
-            let html = '';
-            var mtypes = [];
-            mtypes['vacation_leave'] = 'Vacation Leave';
-            mtypes['overtime'] = 'Overtime';
-            mtypes['shift_change'] = 'Shift Change';
-            mtypes['sick_leave'] = 'Sick Leave';
-            mtypes['unpaid_leave'] = 'Unpaid Leave';
-            mtypes['paid_leave'] = 'Paid Leave';
+        let html = '';
+        var mtypes = [];
+        mtypes['vacation_leave'] = 'Vacation Leave';
+        mtypes['overtime'] = 'Overtime';
+        mtypes['shift_change'] = 'Shift Change';
+        mtypes['sick_leave'] = 'Sick Leave';
+        mtypes['unpaid_leave'] = 'Unpaid Leave';
+        mtypes['paid_leave'] = 'Paid Leave';
 
-            var status = [];
-            status['approved'] = '<span class="text-green">Approved</span>';
-            status['pending'] = '<span class="text-warning">Pending</span>';
-            status['rejected'] = '<span class="text-danger">Rejected</span>';
+        var status = [];
+        status['approved'] = '<span class="text-green">Approved</span>';
+        status['pending'] = '<span class="text-warning">Pending</span>';
+        status['rejected'] = '<span class="text-danger">Rejected</span>';
 
-            var unread_req = 0;
+        var unread_req = 0;
 
-            if (data != '')
-                $.each(data, function(i, e) {
-                    //console.log(e.details);
-                    if (e.read_by_user == '0') {
-                        html += '<tr id="td-req" rel="' + mtypes[e.type] + '|' + e.details + '|' + e.status + '|' + e.target_date + '|' + e.notes + '|' + e.overtime + '|' + e.id + '|' + e.read_by_user + '"><td><span class="truncate-texts font-weight-bold">' + e.details + '</span></td><td class="font-weight-bold">' + mtypes[e.type] + '</td><td class="font-weight-bold">' + status[e.status] + '</td></tr>';
-                        unread_req += 1;
-                    } else {
-                        html += '<tr id="td-req" rel="' + mtypes[e.type] + '|' + e.details + '|' + e.status + '|' + e.target_date + '|' + e.notes + '|' + e.overtime + e.id + '|' + e.read_by_user + '"><td><span class="truncate-texts">' + e.details + '</span></td><td>' + mtypes[e.type] + '</td><td>' + status[e.status] + '</td></tr>';
-                    }
+        if (data != '')
+            $.each(data, function(i, e) {
+                //console.log(e.details);
+                if (e.read_by_user == '0') {
+                    html += '<tr id="td-req" rel="' + mtypes[e.type] + '|' + e.details + '|' + e.status + '|' + e.target_date + '|' + e.notes + '|' + e.overtime + '|' + e.id + '|' + e.read_by_user + '"><td><span class="truncate-texts font-weight-bold">' + e.details + '</span></td><td class="font-weight-bold">' + mtypes[e.type] + '</td><td class="font-weight-bold">' + status[e.status] + '</td></tr>';
+                    unread_req += 1;
+                } else {
+                    html += '<tr id="td-req" rel="' + mtypes[e.type] + '|' + e.details + '|' + e.status + '|' + e.target_date + '|' + e.notes + '|' + e.overtime + e.id + '|' + e.read_by_user + '"><td><span class="truncate-texts">' + e.details + '</span></td><td>' + mtypes[e.type] + '</td><td>' + status[e.status] + '</td></tr>';
+                }
 
+            });
 
-
-                });
-
-            if (unread_req >= 1) {
-                $('#notif-toggle').show();
-                $('#badge-new-req').show();
-                $('#badge-new-req').text(unread_req);
-                //$('#badge-new-req').show();
-            } else {
-                $('#notif-toggle').hide();
-                $('#badge-new-req').hide();
-            }
-
-            $('#requests-concerns-table').html(html);
+        if (unread_req >= 1) {
+            $('#notif-toggle').show();
+            $('#badge-new-req').show();
+            $('#badge-new-req').text(unread_req);
+            //$('#badge-new-req').show();
+        } else {
+            $('#notif-toggle').hide();
+            $('#badge-new-req').hide();
         }
-    });
+
+        $('#requests-concerns-table').html(html);
+        return true
+        
+    } catch(e){
+        console.log(e)
+    }
 }
+
 $(document).on('click', '#notif-toggle', function(e){
     e.preventDefault();
     shell.openExternal(remote_url + '/dashboard/requests')
@@ -1195,13 +1160,13 @@ function remindUserIdle() {
     $('#modalIdelRemind').modal('show');
 }
 
-function resumedIdle(access_token) {
-    postIdle("stop", access_token);
+function resumedIdle() {
+    postIdle("stop");
 }
 
 function popupWarning() {
     $('.warning-div').find('span').text('A task is currently running. Please stop the task to proceed.');
-    $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(500);
+    $('.warning-div').css('display', 'inline-block').delay(5000).fadeOut(1000);
 }
 
 function noInternet() {
@@ -1241,7 +1206,6 @@ $(document).on('click', '#logout', function() {
         }
 
         logoutUserToFront();
-
     }
 });
 
@@ -1348,7 +1312,7 @@ $('#clickToReconnect').click(function() {
     location.reload();
 });
 
-$('#closeEODRemind').click(function() {
+$('#closeEODRemind').on('click', function() {
     {
         $('#modalEODRemind').modal('hide');
         window.webkit.messageHandlers.forceLogout.postMessage('0');
@@ -1513,9 +1477,11 @@ $('#send-time-in').click(function(e) {
 
     localStorage.setItem("last_login", attendance_id);
 
-    setAttendance(access_token, user_id, attendance_id);
+    setAttendance(access_token, attendance_id).then(() => {
+         $('#date-current-sched-top').text($("#current-sched-options option:selected").text().replace(':00AM', ' AM').replace(':00PM', ' PM').replace('-', ' - '));
+    })
 
-    $('#date-current-sched-top').text($("#current-sched-options option:selected").text().replace(':00AM', ' AM').replace(':00PM', ' PM').replace('-', ' - '));
+   
 });
 
 function postTimeout(access_token, uid, id) {
@@ -1562,6 +1528,8 @@ function changeTi() {
     });
 }
 
+// is this in use???
+/*
 function postRequests(access_token) {
     $.ajax({
         headers: {
@@ -1577,7 +1545,10 @@ function postRequests(access_token) {
         }
     });
 }
+*/
 
+// is this in use???
+/*
 function getMessages(access_token) {
     //var num_messages = 0;
     var message_td = '';
@@ -1647,80 +1618,72 @@ function getMessages(access_token) {
         }
     });
 }
+*/
 
 $('#user-messages').click(function() {
     $('#dashboard-tab').click();
     $('.custom-body-box ul li').find('#home-tab').click();
 });
 
-$(document).on('click', '#user-message-main', function() {
+$(document).on('click', '#user-message-main', async function() {
     console.log('read message here' + $(this).attr('rel'));
     var convo_thread = '';
     var read_msg = [];
 
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: remote_url + '/api/users/message',
-        type: 'post',
-        async: false,
-        data: { 'access_token': access_token, 'message_id': $(this).attr('rel') },
-        success: function(data) {
-            //console.log(data);
+    let url = remote_url + '/api/users/message';
+    const message_id =  $(this).attr('rel')
+    try{
+        let response = await axios.post(url, { 'access_token': access_token, 'message_id': message_id })
+        let data = response.data
 
-            var from_usr = '';
-            var replyto = '';
+        var from_usr = '';
+        var replyto = '';
 
-            var entry = JSON.parse(data);
+        var entry = JSON.parse(data);
 
-            convo_thread += '<div class="convo-solo" style="text-align: left !important;"><span class="font-weight-bold text-primary">' + entry.sender.first_name + ' ' + entry.sender.last_name + '</span>&nbsp;<span class="text-secondary">' + entry.created_at + '<span><div class="text-dark message-body-txt">' + entry.message + '</div><div><input type="hidden" name="sender" id="reply-sender" value="' + entry.to_id + '"> <input id="reply-receiver" type="hidden" value="' + entry.from_id + '"><input name="reply_to" type="hidden" id="reply-to" value="' + entry.reply_to + '">';
+        convo_thread += '<div class="convo-solo" style="text-align: left !important;"><span class="font-weight-bold text-primary">' + entry.sender.first_name + ' ' + entry.sender.last_name + '</span>&nbsp;<span class="text-secondary">' + entry.created_at + '<span><div class="text-dark message-body-txt">' + entry.message + '</div><div><input type="hidden" name="sender" id="reply-sender" value="' + entry.to_id + '"> <input id="reply-receiver" type="hidden" value="' + entry.from_id + '"><input name="reply_to" type="hidden" id="reply-to" value="' + entry.reply_to + '">';
 
-            $('#reply-reply_to').val(entry.reply_to);
-            replyto = entry.reply_to;
-            console.log(entry.status)
-            if (entry.status == 'sent') {
-                read_msg.push(entry.id);
-            }
-
-            //console.log(entry.replies);
-
-            if (entry.replies.length >= 1) {
-                $.each(entry.replies, function(i, v) {
-
-                    convo_thread += '<div class="convo-solo" style="text-align: left !important;"><span class="font-weight-bold text-primary">' + v.first_name + ' ' + v.last_name + '</span>&nbsp;<span class="text-secondary">' + v.created_at + '<span><div class="text-dark message-body-txt">' + v.message + '</div><div><input type="hidden" name="sender" id="reply-sender" value="' + v.to_id + '"> <input id="reply-receiver" type="hidden" value="' + v.from_id + '"><input name="reply_to" type="hidden" id="reply-to" value="' + v.reply_to + '">';
-
-                    $('#reply-reply_to').val(v.reply_to);
-                    replyto = v.reply_to;
-
-                    if (v.status == 'sent') {
-                        read_msg.push(v.id);
-                    }
-
-                });
-            }
-
-            if (replyto == null) {
-                $('#reply-reply_to').val(entry.id);
-            }
+        $('#reply-reply_to').val(entry.reply_to);
+        replyto = entry.reply_to;
+        console.log(entry.status)
+        if (entry.status == 'sent') {
+            read_msg.push(entry.id);
         }
-    });
+
+        //console.log(entry.replies);
+
+        if (entry.replies.length >= 1) {
+            $.each(entry.replies, function(i, v) {
+
+                convo_thread += '<div class="convo-solo" style="text-align: left !important;"><span class="font-weight-bold text-primary">' + v.first_name + ' ' + v.last_name + '</span>&nbsp;<span class="text-secondary">' + v.created_at + '<span><div class="text-dark message-body-txt">' + v.message + '</div><div><input type="hidden" name="sender" id="reply-sender" value="' + v.to_id + '"> <input id="reply-receiver" type="hidden" value="' + v.from_id + '"><input name="reply_to" type="hidden" id="reply-to" value="' + v.reply_to + '">';
+
+                $('#reply-reply_to').val(v.reply_to);
+                replyto = v.reply_to;
+
+                if (v.status == 'sent') {
+                    read_msg.push(v.id);
+                }
+
+            });
+        }
+
+        if (replyto == null) {
+            $('#reply-reply_to').val(entry.id);
+        }
+    } catch(e){
+        console.log(e)
+    }
 
     //console.log('read msgs' + read_msg);
     if (read_msg.length >= 1) {
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: remote_url + '/api/users/message-read',
-            type: 'post',
-            async: false,
-            data: { 'access_token': access_token, 'ids': read_msg },
-            success: function(data) {
-                console.log(data);
-                //return data;
-            }
-        });
+        url = remote_url + '/api/users/message-read'
+        try{
+            response = await axios.post(url, { 'access_token': access_token, 'ids': read_msg })
+            data = response.data
+            console.log(data);
+        } catch(e){
+            console.log(e)
+        }
     }
 
     $('.user-msg-thread').html(convo_thread);
@@ -1736,11 +1699,8 @@ $(document).on('click', '#open-message', function() {
 });
 
 $('#modalMessageCenter').on('hide.bs.modal', function(e) {
-
     $('#success-handler-msg').text('');
     $('#err-handler-msg').text('');
-    //getMessages(access_token);
-
 });
 
 $('#modalVacationLeave').on('hide.bs.modal', function(e) {
@@ -1776,7 +1736,6 @@ $('#pp-send-message').on('click', async function(e) {
         /*
             url: remote_url + '/api/users/message-save',
             type: 'post',
-            async: false,
             data: { 'access_token': access_token, 'message': message, 'to': to, 'from': from, 'reply_to': reply_to },
         */
        try{
@@ -1868,7 +1827,7 @@ ipcRenderer.on('update_downloaded', () => {
 
 
 ipcRenderer.on("ping-pong", function(event, data) {
-    doPingpong(access_token, user_id);
+    doPingpong();
 });
 
 ipcRenderer.on("message-from-worker", function(event, arg) {

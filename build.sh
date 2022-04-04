@@ -1,7 +1,9 @@
 #!/bin/bash
 VERSION_TYPE='patch'
+PLATFORM_KEY=''
+PUBLISH='never'
 
-[ -z "$1" ] && echo "ERROR!" && echo "Usage: $0 <dev|qa|prod> [Optional version type: <patch|minor|major>]" && exit -1
+[ -z "$1" ] && echo "ERROR!" && echo "Usage: $0 <dev|qa|prod> [Optional version type: <patch|minor|major|none>]" && exit -1
 
 if [ "$2" != 'win32' -a "$2" != 'darwin' ]
 then 
@@ -10,6 +12,36 @@ then
 fi
 
 PLATFORM=`node getPlatform.js`
+
+case $PLATFORM in
+
+  'darwin')
+    PLATFORM_KEY='--mac --win'
+    ;;
+
+  'win32')
+    PLATFORM_KEY='--win'
+    ;;
+
+  'linux')
+    PLATFORM_KEY='--linux'
+    ;;
+
+#  *)
+#    default goes here
+#    ;;
+esac
+
+case $BUILD_TYPE in
+
+  'prod')
+    PUBLISH='always'
+    ;;
+
+  *)
+    PUBLISH='never'
+    ;;
+esac
 
 BUILD_TYPE=$1
 
@@ -20,39 +52,20 @@ fi
 # if prod or qa increase version
 if [ "$BUILD_TYPE" = 'qa' -o "$BUILD_TYPE" = 'prod' ]
 then 
-    npm version ${VERSION_TYPE}
+    if [ "$VERSION_TYPE" != "none" ]
+    then
+        npm version ${VERSION_TYPE}
+    fi
 fi
 
 rm -f ./src/env.js
 cp ./deploy/${BUILD_TYPE}.env.js ./src/env.js
 
-VERSION=`node getVersion.js`
+# Example:
+# npx electron-builder build --win --x64 --publish always
+echo "Executing:"
+echo "npx electron-builder build ${PLATFORM_KEY} --x64 --publish ${PUBLISH}"
 
-#sed -i.bu "s/version: '___V___'/version: \"${VERSION}\"/" src/env.js
-#sed -i.bu "s/platform: '___V___'/platform: \"${PLATFORM}\"/" src/env.js
+npx electron-builder build ${PLATFORM_KEY} --x64 --publish ${PUBLISH}
 
-#URL=`node getUploadUrl.js`
-
-source "./deploy/${BUILD_TYPE}.tokens.sh"
-
-#win32: 
-#PLATFORMS=('win32' 'darvin')
-
-#for PLATFORM in "${PLATFORMS[@]}"
-#do
-    #npx electron-packager . VaClientApp --platform=${PLATFORM} --arch=all --icon=src/icon.ico --out=./_app/builds --overwrite
-
-npm run ${PLATFORM}-make
-
-if [ "$PLATFORM" = "darwin" ]
-then 
-    mv ./_app/installers/darwin/VaClientApp.dmg ./_app/installers/darwin/VaClientApp.${VERSION}.dmg 
-    FILEPATH="./_app/installers/darwin/VaClientApp.${VERSION}.dmg"
-fi
-
-#echo "curl -X POST -H \"Token: ${TOKENS[0]}\" -F \"version=${VERSION}\" -F \"file=@${FILEPATH}\" \"${URL}/${PLATFORM}\""
-#curl -X POST -H "Token: ${TOKENS[0]}" -F "version=${VERSION}" -F "file=@${FILEPATH}" -i "${URL}/${PLATFORM}"
-
-#rm -f $FILEPATH
-
-#done
+cp ./deploy/dev.env.js ./src/env.js
