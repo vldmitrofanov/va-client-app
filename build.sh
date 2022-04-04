@@ -32,6 +32,8 @@ case $PLATFORM in
 #    ;;
 esac
 
+BUILD_TYPE=$1
+
 case $BUILD_TYPE in
 
   'prod')
@@ -42,8 +44,6 @@ case $BUILD_TYPE in
     PUBLISH='never'
     ;;
 esac
-
-BUILD_TYPE=$1
 
 if [ ! -z "$2" ]
 then
