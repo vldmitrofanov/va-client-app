@@ -26,3 +26,6 @@ to add github token in windows
 
 build for windows 
 npx electron-builder build --win --x64 --publish always
+
+releases JSON access:
+https://api.github.com/repos/vldmitrofanov/va-client-app/releases/latest
