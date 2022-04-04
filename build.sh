@@ -5,11 +5,11 @@ PUBLISH='never'
 
 [ -z "$1" ] && echo "ERROR!" && echo "Usage: $0 <dev|qa|prod> [Optional version type: <patch|minor|major|none>]" && exit -1
 
-if [ "$2" != 'win32' -a "$2" != 'darwin' ]
-then 
-    echo "ERROR! please specify the platform you want to build upon" 
-    exit -1
-fi
+#if [ "$2" != 'win32' -a "$2" != 'darwin' ]
+#then 
+#    echo "ERROR! please specify the platform you want to build upon" 
+#    exit -1
+#fi
 
 PLATFORM=`node getPlatform.js`
 
