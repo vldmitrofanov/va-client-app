@@ -41,7 +41,7 @@
             "runAfterFinish": false
         },
         "mac": {
-            "icon": "src/icon.icns",
+            "icon": "src/AppIcon.icns",
             "darkModeSupport": "false"
         }
     },
