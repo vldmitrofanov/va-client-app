@@ -39,6 +39,10 @@
             "installerIcon": "src/icon.ico",
             "uninstallerIcon": "src/icon.ico",
             "runAfterFinish": false
+        },
+        "mac": {
+            "icon": "src/icon.icns",
+            "darkModeSupport": "false"
         }
     },
     "repository": {
