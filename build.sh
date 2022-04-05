@@ -50,7 +50,7 @@ then
     VERSION_TYPE=$2
 fi
 # if prod or qa increase version
-if [ "$BUILD_TYPE" = 'qa' -o "$BUILD_TYPE" = 'prod' ]
+if [ "$BUILD_TYPE" == 'prod' ]
 then 
     if [ "$VERSION_TYPE" != "none" ]
     then
